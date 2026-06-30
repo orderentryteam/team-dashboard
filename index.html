@@ -6,12 +6,25 @@
 <title>Team Monitoring Dashboard</title>
 <style>
   :root{
+    --bg:#f0f4f8; --panel:#ffffff; --panel-2:#e8edf2; --line:#d1dae3;
+    --text:#1a2332; --muted:#6b7e93; --accent:#0ea5a0; --accent-soft:rgba(14,165,160,0.10);
+    --warn:#d97706; --bad:#dc2626; --good:#16a34a; --radius:10px;
+  }
+  body.dark{
     --bg:#0f1419; --panel:#161d27; --panel-2:#1c2531; --line:#2a3441;
     --text:#e7edf3; --muted:#8b9bab; --accent:#4fd1c5; --accent-soft:rgba(79,209,197,0.12);
-    --warn:#f2b84b; --bad:#f0625a; --good:#4fd17a; --radius:10px;
+    --warn:#f2b84b; --bad:#f0625a; --good:#4fd17a;
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  body{margin:0;font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.2s,color 0.2s;}
+
+  /* Theme toggle */
+  .theme-toggle{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:20px;
+    padding:5px 12px; font-size:12px; cursor:pointer; color:var(--muted);
+    display:flex; align-items:center; gap:6px;
+  }
+  .theme-toggle:hover{color:var(--text);}
 
   #loginScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px;}
   #loginScreen .box{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:32px; width:320px; display:flex; flex-direction:column; gap:12px;}
@@ -19,8 +32,8 @@
   #loginScreen .sub{color:var(--muted); font-size:12px; margin-bottom:8px;}
   #loginScreen input{background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:8px; font-size:13px; outline:none;}
   #loginScreen input:focus{border-color:var(--accent);}
-  #loginScreen button{background:var(--accent); color:#0a1410; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px;}
-  #loginScreen button:hover{opacity:0.9;}
+  #loginScreen button.sign-in-btn{background:var(--accent); color:#fff; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px;}
+  #loginScreen button.sign-in-btn:hover{opacity:0.9;}
   #loginError{color:var(--bad); font-size:12px; min-height:14px;}
 
   header{padding:24px 32px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;}
@@ -37,8 +50,8 @@
   .controls input, .controls select{background:var(--panel); border:1px solid var(--line); color:var(--text); padding:9px 12px; border-radius:8px; font-size:13px; outline:none;}
   .controls input{flex:1; min-width:200px;}
   .controls input:focus, .controls select:focus{border-color:var(--accent);}
-  .btn{background:var(--accent-soft); color:var(--accent); border:1px solid rgba(79,209,197,0.35); padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer; font-weight:600;}
-  .btn:hover{background:rgba(79,209,197,0.2);}
+  .btn{background:var(--accent-soft); color:var(--accent); border:1px solid rgba(14,165,160,0.35); padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer; font-weight:600;}
+  .btn:hover{opacity:0.8;}
 
   .summary{display:flex; gap:14px; padding:0 32px 18px; flex-wrap:wrap;}
   .summary .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; min-width:130px;}
@@ -54,7 +67,7 @@
   .row textarea:focus{border-color:var(--accent); outline:none;}
   .card-actions{display:flex; gap:8px; margin-top:4px;}
   .card-actions button{flex:1; font-size:12px; padding:7px; border-radius:6px; cursor:pointer; border:1px solid var(--line); background:var(--panel-2); color:var(--text);}
-  .card-actions .save{border-color:rgba(79,209,122,0.4); color:var(--good);}
+  .card-actions .save{border-color:rgba(22,163,74,0.4); color:var(--good);}
   .empty-state{padding:60px 32px; text-align:center; color:var(--muted);}
   .empty-state b{color:var(--text);}
   footer{padding:14px 32px; color:var(--muted); font-size:11px; border-top:1px solid var(--line);}
@@ -70,8 +83,9 @@
     <input id="loginEmail" type="email" placeholder="Email">
     <input id="loginPassword" type="password" placeholder="Password">
     <div id="loginError"></div>
-    <button id="loginBtn">Sign in</button>
+    <button class="sign-in-btn" id="loginBtn">Sign in</button>
   </div>
+  <button class="theme-toggle" id="themeToggleLogin">🌙 Dark mode</button>
 </div>
 
 <div id="app">
@@ -81,6 +95,7 @@
       <div class="sub">Live roster &amp; supplier assignments</div>
     </div>
     <div class="right-controls">
+      <button class="theme-toggle" id="themeToggleApp">🌙 Dark mode</button>
       <span id="statusPill" class="status-pill">Connecting…</span>
       <button class="logout-btn" id="logoutBtn">Sign out</button>
     </div>
@@ -99,16 +114,28 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-/* ============== CONFIG ==============
-   Fill these in from your Supabase project: Settings > API
-=========================================== */
 const SUPABASE_URL = "https://prxqfgdebbhwiaxpauax.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByeHFmZ2RlYmJod2lheHBhdWF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NDMwODcsImV4cCI6MjA5ODQxOTA4N30.5GaaGQJdXwE6U1_tGwxtCC-1uf6RgOoil9Ql7Ml0sPA";
-/* ===================================== */
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let allRows = [];
 
+/* ---------- THEME ---------- */
+function applyTheme(dark){
+  document.body.classList.toggle('dark', dark);
+  const label = dark ? '☀️ Light mode' : '🌙 Dark mode';
+  document.getElementById('themeToggleLogin').textContent = label;
+  document.getElementById('themeToggleApp').textContent = label;
+  localStorage.setItem('theme', dark ? 'dark' : 'light');
+}
+function toggleTheme(){
+  applyTheme(!document.body.classList.contains('dark'));
+}
+document.getElementById('themeToggleLogin').addEventListener('click', toggleTheme);
+document.getElementById('themeToggleApp').addEventListener('click', toggleTheme);
+applyTheme(localStorage.getItem('theme') === 'dark');
+
+/* ---------- STATUS ---------- */
 function setStatus(text, type){
   const pill = document.getElementById('statusPill');
   pill.textContent = text;
@@ -116,6 +143,7 @@ function setStatus(text, type){
 }
 function splitList(val){ return (val || '').split(';').map(s=>s.trim()).filter(Boolean); }
 
+/* ---------- AUTH ---------- */
 async function checkSession(){
   const { data: { session } } = await supabaseClient.auth.getSession();
   if(session){ showApp(); } else { showLogin(); }
@@ -143,6 +171,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   showLogin();
 });
 
+/* ---------- DATA ---------- */
 async function loadData(){
   setStatus('Loading…');
   const { data, error } = await supabaseClient.from('members').select('*').order('name');
@@ -168,11 +197,8 @@ function populateShiftFilter(){
 function render(){
   const q = document.getElementById('searchInput').value.toLowerCase();
   const shiftFilter = document.getElementById('shiftFilter').value;
-
   const filtered = allRows.filter(r => {
-    const assigned = splitList(r.assigned_suppliers);
-    const monitored = splitList(r.monitored_suppliers);
-    const haystack = [r.name, ...assigned, ...monitored].join(' ').toLowerCase();
+    const haystack = [r.name, r.assigned_suppliers, r.monitored_suppliers].join(' ').toLowerCase();
     return (!q || haystack.includes(q)) && (!shiftFilter || (r.shift||'').trim() === shiftFilter);
   });
 
@@ -237,8 +263,7 @@ async function saveMember(card){
 
 async function deleteMember(card){
   if(!confirm('Remove this member from the dashboard?')) return;
-  const id = card.dataset.id;
-  const { error } = await supabaseClient.from('members').delete().eq('id', id);
+  const { error } = await supabaseClient.from('members').delete().eq('id', card.dataset.id);
   if(error){ alert('Delete failed: ' + error.message); return; }
   loadData();
 }

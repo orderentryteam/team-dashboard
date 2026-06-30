@@ -8,69 +8,95 @@
   :root{
     --bg:#f0f4f8; --panel:#ffffff; --panel-2:#e8edf2; --line:#d1dae3;
     --text:#1a2332; --muted:#6b7e93; --accent:#0ea5a0; --accent-soft:rgba(14,165,160,0.10);
-    --warn:#d97706; --bad:#dc2626; --good:#16a34a; --radius:10px;
+    --warn:#d97706; --warn-bg:rgba(217,119,6,0.10); --bad:#dc2626; --bad-bg:rgba(220,38,38,0.10);
+    --good:#16a34a; --good-bg:rgba(22,163,74,0.10); --radius:10px;
   }
   body.dark{
     --bg:#0f1419; --panel:#161d27; --panel-2:#1c2531; --line:#2a3441;
     --text:#e7edf3; --muted:#8b9bab; --accent:#4fd1c5; --accent-soft:rgba(79,209,197,0.12);
-    --warn:#f2b84b; --bad:#f0625a; --good:#4fd17a;
+    --warn:#f2b84b; --warn-bg:rgba(242,184,75,0.12); --bad:#f0625a; --bad-bg:rgba(240,98,90,0.12);
+    --good:#4fd17a; --good-bg:rgba(79,209,122,0.12);
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.2s,color 0.2s;}
+  body{margin:0;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.2s,color 0.2s;}
 
-  /* Theme toggle */
-  .theme-toggle{
-    background:var(--panel-2); border:1px solid var(--line); border-radius:20px;
-    padding:5px 12px; font-size:12px; cursor:pointer; color:var(--muted);
-    display:flex; align-items:center; gap:6px;
-  }
+  .theme-toggle{background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--muted);}
   .theme-toggle:hover{color:var(--text);}
 
-  #loginScreen{min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:18px;}
-  #loginScreen .box{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:32px; width:320px; display:flex; flex-direction:column; gap:12px;}
-  #loginScreen h1{margin:0 0 4px; font-size:18px;}
-  #loginScreen .sub{color:var(--muted); font-size:12px; margin-bottom:8px;}
-  #loginScreen input{background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:8px; font-size:13px; outline:none;}
+  /* Login */
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;}
+  #loginScreen .box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:32px;width:320px;display:flex;flex-direction:column;gap:12px;}
+  #loginScreen h1{margin:0 0 4px;font-size:18px;}
+  #loginScreen .sub{color:var(--muted);font-size:12px;margin-bottom:8px;}
+  #loginScreen input{background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:8px;font-size:13px;outline:none;}
   #loginScreen input:focus{border-color:var(--accent);}
-  #loginScreen button.sign-in-btn{background:var(--accent); color:#fff; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px;}
-  #loginScreen button.sign-in-btn:hover{opacity:0.9;}
-  #loginError{color:var(--bad); font-size:12px; min-height:14px;}
+  #loginScreen .sign-in-btn{background:var(--accent);color:#fff;border:none;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;}
+  #loginError{color:var(--bad);font-size:12px;min-height:14px;}
 
-  header{padding:24px 32px 16px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;}
-  header h1{margin:0; font-size:22px; font-weight:600;}
-  header .sub{color:var(--muted); font-size:13px; margin-top:4px;}
-  .right-controls{display:flex; align-items:center; gap:10px;}
-  .status-pill{font-size:12px; padding:5px 12px; border-radius:20px; background:var(--panel-2); border:1px solid var(--line); color:var(--muted);}
-  .status-pill.live{color:var(--good); border-color:rgba(79,209,122,0.35);}
-  .status-pill.err{color:var(--bad); border-color:rgba(240,98,90,0.35);}
-  .logout-btn{background:none; border:1px solid var(--line); color:var(--muted); padding:5px 12px; border-radius:8px; font-size:12px; cursor:pointer;}
-  .logout-btn:hover{color:var(--text); border-color:var(--text);}
+  /* Header */
+  header{padding:20px 28px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  header h1{margin:0;font-size:20px;font-weight:700;}
+  header .sub{color:var(--muted);font-size:12px;margin-top:3px;}
+  .right-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .status-pill{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);}
+  .status-pill.live{color:var(--good);}
+  .status-pill.err{color:var(--bad);}
+  .logout-btn{background:none;border:1px solid var(--line);color:var(--muted);padding:4px 10px;border-radius:8px;font-size:12px;cursor:pointer;}
 
-  .controls{display:flex; gap:10px; padding:18px 32px; flex-wrap:wrap; align-items:center;}
-  .controls input, .controls select{background:var(--panel); border:1px solid var(--line); color:var(--text); padding:9px 12px; border-radius:8px; font-size:13px; outline:none;}
-  .controls input{flex:1; min-width:200px;}
-  .controls input:focus, .controls select:focus{border-color:var(--accent);}
-  .btn{background:var(--accent-soft); color:var(--accent); border:1px solid rgba(14,165,160,0.35); padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer; font-weight:600;}
-  .btn:hover{opacity:0.8;}
+  /* Controls */
+  .controls{display:flex;gap:10px;padding:16px 28px;flex-wrap:wrap;align-items:center;}
+  .controls input,.controls select{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;outline:none;}
+  .controls input{flex:1;min-width:180px;}
+  .controls input:focus,.controls select:focus{border-color:var(--accent);}
+  .btn{background:var(--accent-soft);color:var(--accent);border:1px solid rgba(14,165,160,0.35);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;}
 
-  .summary{display:flex; gap:14px; padding:0 32px 18px; flex-wrap:wrap;}
-  .summary .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 18px; min-width:130px;}
-  .summary .card .num{font-size:24px; font-weight:700;}
-  .summary .card .label{font-size:12px; color:var(--muted); margin-top:2px;}
+  /* Summary */
+  .summary{display:flex;gap:12px;padding:0 28px 16px;flex-wrap:wrap;}
+  .summary .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;min-width:120px;}
+  .summary .card .num{font-size:22px;font-weight:700;}
+  .summary .card.alert-card .num{color:var(--bad);}
+  .summary .card .label{font-size:11px;color:var(--muted);margin-top:2px;}
 
-  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px; padding:0 32px 40px;}
-  .member-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; display:flex; flex-direction:column; gap:10px;}
-  .member-card .top{display:flex; justify-content:space-between; align-items:center; gap:8px;}
-  .row{display:flex; flex-direction:column; gap:3px;}
-  .row .k{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px;}
-  .row textarea{background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:8px; font-size:12px; font-family:inherit; resize:vertical; min-height:38px;}
-  .row textarea:focus{border-color:var(--accent); outline:none;}
-  .card-actions{display:flex; gap:8px; margin-top:4px;}
-  .card-actions button{flex:1; font-size:12px; padding:7px; border-radius:6px; cursor:pointer; border:1px solid var(--line); background:var(--panel-2); color:var(--text);}
-  .card-actions .save{border-color:rgba(22,163,74,0.4); color:var(--good);}
-  .empty-state{padding:60px 32px; text-align:center; color:var(--muted);}
-  .empty-state b{color:var(--text);}
-  footer{padding:14px 32px; color:var(--muted); font-size:11px; border-top:1px solid var(--line);}
+  /* Member grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:0 28px 40px;}
+  .member-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:12px;}
+  .member-card .top{display:flex;justify-content:space-between;align-items:center;}
+  .member-name{font-size:16px;font-weight:700;}
+  .shift-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+
+  /* Supplier order rows */
+  .supplier-list{display:flex;flex-direction:column;gap:8px;}
+  .supplier-row{display:flex;align-items:center;justify-content:space-between;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;gap:8px;}
+  .supplier-row.status-ok{border-color:rgba(22,163,74,0.3);background:var(--good-bg);}
+  .supplier-row.status-warn{border-color:rgba(217,119,6,0.4);background:var(--warn-bg);}
+  .supplier-row.status-bad{border-color:rgba(220,38,38,0.4);background:var(--bad-bg);}
+  .supplier-info{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+  .supplier-name-text{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cutoff-row{display:flex;align-items:center;gap:6px;}
+  .cutoff-label{font-size:10px;color:var(--muted);}
+  .cutoff-input{font-size:11px;background:transparent;border:none;border-bottom:1px dashed var(--line);color:var(--muted);outline:none;width:70px;padding:1px 2px;}
+  .cutoff-input:focus{border-bottom-color:var(--accent);}
+  .order-controls{display:flex;align-items:center;gap:6px;}
+  .count-display{font-size:20px;font-weight:800;min-width:32px;text-align:center;line-height:1;}
+  .count-display.zero{color:var(--good);}
+  .count-display.some{color:var(--warn);}
+  .count-display.alert{color:var(--bad);}
+  .count-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}
+  .count-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .count-btn.plus:hover{border-color:var(--bad);color:var(--bad);}
+
+  /* Member card footer */
+  .card-footer{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .card-footer input{flex:1;min-width:80px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:5px 8px;border-radius:6px;font-size:11px;outline:none;}
+  .card-footer input:focus{border-color:var(--accent);}
+  .save-member-btn{font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid rgba(22,163,74,0.4);background:var(--good-bg);color:var(--good);font-weight:600;}
+  .del-btn{font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);}
+  .add-supplier-btn{font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px dashed var(--accent);background:var(--accent-soft);color:var(--accent);}
+
+  .section-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;}
+  .updated-time{font-size:10px;color:var(--muted);text-align:right;}
+  .empty-state{padding:60px 28px;text-align:center;color:var(--muted);}
+  footer{padding:12px 28px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
   #app{display:none;}
 </style>
 </head>
@@ -92,7 +118,7 @@
   <header>
     <div>
       <h1>Team Monitoring Dashboard</h1>
-      <div class="sub">Live roster &amp; supplier assignments</div>
+      <div class="sub">Real-time order tracking per supplier</div>
     </div>
     <div class="right-controls">
       <button class="theme-toggle" id="themeToggleApp">🌙 Dark mode</button>
@@ -109,7 +135,7 @@
 
   <div class="summary" id="summary"></div>
   <div class="grid" id="grid"></div>
-  <footer>Changes save straight to the database — visible to everyone with login access.</footer>
+  <footer>Updates are real-time — everyone sees changes instantly. Cut-off times trigger warnings automatically.</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -117,167 +143,237 @@
 const SUPABASE_URL = "https://prxqfgdebbhwiaxpauax.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByeHFmZ2RlYmJod2lheHBhdWF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NDMwODcsImV4cCI6MjA5ODQxOTA4N30.5GaaGQJdXwE6U1_tGwxtCC-1uf6RgOoil9Ql7Ml0sPA";
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let allRows = [];
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let members = [], orders = [];
 
-/* ---------- THEME ---------- */
+/* ---- THEME ---- */
 function applyTheme(dark){
   document.body.classList.toggle('dark', dark);
-  const label = dark ? '☀️ Light mode' : '🌙 Dark mode';
-  document.getElementById('themeToggleLogin').textContent = label;
-  document.getElementById('themeToggleApp').textContent = label;
+  const lbl = dark ? '☀️ Light mode' : '🌙 Dark mode';
+  document.getElementById('themeToggleLogin').textContent = lbl;
+  document.getElementById('themeToggleApp').textContent = lbl;
   localStorage.setItem('theme', dark ? 'dark' : 'light');
 }
-function toggleTheme(){
-  applyTheme(!document.body.classList.contains('dark'));
-}
-document.getElementById('themeToggleLogin').addEventListener('click', toggleTheme);
-document.getElementById('themeToggleApp').addEventListener('click', toggleTheme);
+document.getElementById('themeToggleLogin').onclick = () => applyTheme(!document.body.classList.contains('dark'));
+document.getElementById('themeToggleApp').onclick = () => applyTheme(!document.body.classList.contains('dark'));
 applyTheme(localStorage.getItem('theme') === 'dark');
 
-/* ---------- STATUS ---------- */
-function setStatus(text, type){
-  const pill = document.getElementById('statusPill');
-  pill.textContent = text;
-  pill.className = 'status-pill' + (type ? ' ' + type : '');
+/* ---- STATUS ---- */
+function setStatus(t, type){
+  const p = document.getElementById('statusPill');
+  p.textContent = t; p.className = 'status-pill' + (type ? ' '+type : '');
 }
-function splitList(val){ return (val || '').split(';').map(s=>s.trim()).filter(Boolean); }
+function splitList(v){ return (v||'').split(';').map(s=>s.trim()).filter(Boolean); }
 
-/* ---------- AUTH ---------- */
+/* ---- AUTH ---- */
 async function checkSession(){
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if(session){ showApp(); } else { showLogin(); }
+  const { data:{session} } = await sb.auth.getSession();
+  session ? showApp() : showLogin();
 }
-function showLogin(){
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-}
-function showApp(){
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  loadData();
-}
-document.getElementById('loginBtn').addEventListener('click', async () => {
+function showLogin(){ document.getElementById('loginScreen').style.display='flex'; document.getElementById('app').style.display='none'; }
+function showApp(){ document.getElementById('loginScreen').style.display='none'; document.getElementById('app').style.display='block'; loadAll(); subscribeRealtime(); }
+document.getElementById('loginBtn').onclick = async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
   errEl.textContent = '';
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  const { error } = await sb.auth.signInWithPassword({ email, password });
   if(error){ errEl.textContent = error.message; return; }
   showApp();
-});
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await supabaseClient.auth.signOut();
-  showLogin();
-});
+};
+document.getElementById('logoutBtn').onclick = async () => { await sb.auth.signOut(); showLogin(); };
 
-/* ---------- DATA ---------- */
-async function loadData(){
+/* ---- REALTIME ---- */
+function subscribeRealtime(){
+  sb.channel('dashboard-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'supplier_orders' }, () => loadAll())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'members' }, () => loadAll())
+    .subscribe();
+}
+
+/* ---- DATA ---- */
+async function loadAll(){
   setStatus('Loading…');
-  const { data, error } = await supabaseClient.from('members').select('*').order('name');
-  if(error){
-    setStatus('Connection error', 'err');
-    document.getElementById('grid').innerHTML = `<div class="empty-state"><b>Could not load data.</b><br>${error.message}</div>`;
-    return;
-  }
-  allRows = data;
-  setStatus('Live · updated ' + new Date().toLocaleTimeString(), 'live');
+  const [{ data: m, error: e1 }, { data: o, error: e2 }] = await Promise.all([
+    sb.from('members').select('*').order('name'),
+    sb.from('supplier_orders').select('*')
+  ]);
+  if(e1 || e2){ setStatus('Connection error', 'err'); return; }
+  members = m || [];
+  orders = o || [];
+  setStatus('Live · ' + new Date().toLocaleTimeString(), 'live');
   populateShiftFilter();
   render();
 }
 
+/* ---- Ensure supplier_orders rows exist for all suppliers ---- */
+async function ensureOrderRows(memberId, supplierList){
+  const existing = orders.filter(o => o.member_id === memberId).map(o => o.supplier_name);
+  const missing = supplierList.filter(s => !existing.includes(s));
+  if(missing.length === 0) return;
+  await sb.from('supplier_orders').insert(missing.map(s => ({ member_id: memberId, supplier_name: s, unprocessed_count: 0 })));
+}
+
+/* ---- CUT-OFF WARNING ---- */
+function cutoffStatus(cutoffTime, count){
+  if(!cutoffTime || count === 0) return count === 0 ? 'ok' : 'some';
+  const now = new Date();
+  const [h, m] = cutoffTime.split(':').map(Number);
+  const cutoff = new Date(); cutoff.setHours(h, m, 0, 0);
+  const diffMin = (cutoff - now) / 60000;
+  if(count > 0 && diffMin <= 30) return 'bad';
+  if(count > 0 && diffMin <= 60) return 'warn';
+  return count === 0 ? 'ok' : 'some';
+}
+
 function populateShiftFilter(){
   const select = document.getElementById('shiftFilter');
-  const current = select.value;
-  const shifts = [...new Set(allRows.map(r => (r.shift || '').trim()).filter(Boolean))].sort();
+  const cur = select.value;
+  const shifts = [...new Set(members.map(r => (r.shift||'').trim()).filter(Boolean))].sort();
   select.innerHTML = '<option value="">All shifts</option>' + shifts.map(s => `<option value="${s}">${s}</option>`).join('');
-  select.value = current;
+  select.value = cur;
 }
 
 function render(){
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const shiftFilter = document.getElementById('shiftFilter').value;
-  const filtered = allRows.filter(r => {
-    const haystack = [r.name, r.assigned_suppliers, r.monitored_suppliers].join(' ').toLowerCase();
-    return (!q || haystack.includes(q)) && (!shiftFilter || (r.shift||'').trim() === shiftFilter);
+  const sf = document.getElementById('shiftFilter').value;
+  const filtered = members.filter(m => {
+    const hay = [m.name, m.assigned_suppliers, m.monitored_suppliers].join(' ').toLowerCase();
+    return (!q || hay.includes(q)) && (!sf || (m.shift||'').trim() === sf);
   });
 
-  const totalAssigned = filtered.reduce((s,r)=>s+splitList(r.assigned_suppliers).length,0);
-  const totalMonitored = filtered.reduce((s,r)=>s+splitList(r.monitored_suppliers).length,0);
+  // Summary
+  const totalUnprocessed = orders.reduce((s, o) => s + (o.unprocessed_count || 0), 0);
+  const alertCount = orders.filter(o => {
+    const status = cutoffStatus(o.cutoff_time, o.unprocessed_count);
+    return status === 'bad';
+  }).length;
   document.getElementById('summary').innerHTML = `
-    <div class="card"><div class="num">${filtered.length}</div><div class="label">Members shown</div></div>
-    <div class="card"><div class="num">${totalAssigned}</div><div class="label">Suppliers assigned</div></div>
-    <div class="card"><div class="num">${totalMonitored}</div><div class="label">Suppliers monitored</div></div>
+    <div class="card"><div class="num">${filtered.length}</div><div class="label">Members on shift</div></div>
+    <div class="card"><div class="num">${totalUnprocessed}</div><div class="label">Total unprocessed orders</div></div>
+    <div class="card ${alertCount > 0 ? 'alert-card' : ''}"><div class="num">${alertCount}</div><div class="label">⚠️ Near cut-off</div></div>
   `;
 
   const grid = document.getElementById('grid');
-  if(filtered.length === 0){
-    grid.innerHTML = '<div class="empty-state">No matches. Try a different search or shift filter, or add a member.</div>';
-    return;
-  }
+  if(!filtered.length){ grid.innerHTML = '<div class="empty-state">No members found. Add one above.</div>'; return; }
 
-  grid.innerHTML = filtered.map(r => `
-    <div class="member-card" data-id="${r.id}">
-      <div class="top">
-        <input class="name-input" value="${r.name || ''}" style="background:transparent;border:none;color:var(--text);font-size:16px;font-weight:600;width:60%;outline:none;">
-        <input class="shift-input" value="${r.shift || ''}" placeholder="Shift" style="width:90px;text-align:center;font-size:11px;padding:4px 8px;border-radius:20px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);">
-      </div>
-      <div class="row">
-        <div class="k">Assigned suppliers (separate with ;)</div>
-        <textarea class="assigned-input">${r.assigned_suppliers || ''}</textarea>
-      </div>
-      <div class="row">
-        <div class="k">Monitored suppliers (separate with ;)</div>
-        <textarea class="monitored-input">${r.monitored_suppliers || ''}</textarea>
-      </div>
-      <div class="row">
-        <div class="k">Notes</div>
-        <textarea class="notes-input">${r.notes || ''}</textarea>
-      </div>
-      <div class="card-actions">
-        <button class="save-btn save">Save</button>
-        <button class="delete-btn">Delete</button>
-      </div>
-    </div>
-  `).join('');
+  grid.innerHTML = filtered.map(member => {
+    const suppliers = splitList(member.assigned_suppliers);
+    ensureOrderRows(member.id, suppliers);
 
-  grid.querySelectorAll('.member-card').forEach(card => {
-    card.querySelector('.save-btn').addEventListener('click', () => saveMember(card));
-    card.querySelector('.delete-btn').addEventListener('click', () => deleteMember(card));
+    const supplierRows = suppliers.map(sup => {
+      const orderRow = orders.find(o => o.member_id === member.id && o.supplier_name === sup);
+      const count = orderRow ? orderRow.unprocessed_count : 0;
+      const cutoff = orderRow ? (orderRow.cutoff_time || '') : '';
+      const status = cutoffStatus(cutoff, count);
+      const countClass = count === 0 ? 'zero' : status === 'bad' ? 'alert' : 'some';
+      const statusClass = status === 'ok' ? 'status-ok' : status === 'bad' ? 'status-bad' : status === 'warn' ? 'status-warn' : '';
+      const updatedAt = orderRow && orderRow.updated_at ? new Date(orderRow.updated_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '';
+      return `
+        <div class="supplier-row ${statusClass}" data-member="${member.id}" data-supplier="${sup}">
+          <div class="supplier-info">
+            <div class="supplier-name-text">${sup}</div>
+            <div class="cutoff-row">
+              <span class="cutoff-label">Cut-off:</span>
+              <input class="cutoff-input" type="time" value="${cutoff}" title="Set cut-off time" data-member="${member.id}" data-supplier="${sup}">
+              ${updatedAt ? `<span class="cutoff-label" style="margin-left:6px">upd ${updatedAt}</span>` : ''}
+            </div>
+          </div>
+          <div class="order-controls">
+            <button class="count-btn minus" data-member="${member.id}" data-supplier="${sup}">−</button>
+            <div class="count-display ${countClass}">${count}</div>
+            <button class="count-btn plus" data-member="${member.id}" data-supplier="${sup}">+</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="member-card" data-id="${member.id}">
+        <div class="top">
+          <div class="member-name">${member.name}</div>
+          ${member.shift ? `<div class="shift-badge">${member.shift}</div>` : ''}
+        </div>
+        <div>
+          <div class="section-label">Suppliers & Unprocessed Orders</div>
+          <div class="supplier-list">${supplierRows || '<div style="color:var(--muted);font-size:12px">No suppliers assigned</div>'}</div>
+        </div>
+        <div class="card-footer">
+          <input class="name-edit" placeholder="Name" value="${member.name || ''}">
+          <input class="shift-edit" placeholder="Shift" value="${member.shift || ''}">
+          <input class="suppliers-edit" placeholder="Suppliers (sep with ;)" value="${member.assigned_suppliers || ''}">
+          <button class="save-member-btn" data-id="${member.id}">Save</button>
+          <button class="del-btn" data-id="${member.id}">Delete</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Event listeners
+  grid.querySelectorAll('.count-btn.minus').forEach(btn => {
+    btn.onclick = () => updateCount(btn.dataset.member, btn.dataset.supplier, -1);
+  });
+  grid.querySelectorAll('.count-btn.plus').forEach(btn => {
+    btn.onclick = () => updateCount(btn.dataset.member, btn.dataset.supplier, 1);
+  });
+  grid.querySelectorAll('.cutoff-input').forEach(input => {
+    input.onchange = () => updateCutoff(input.dataset.member, input.dataset.supplier, input.value);
+  });
+  grid.querySelectorAll('.save-member-btn').forEach(btn => {
+    btn.onclick = () => {
+      const card = btn.closest('.member-card');
+      saveMember(btn.dataset.id, card);
+    };
+  });
+  grid.querySelectorAll('.del-btn').forEach(btn => {
+    btn.onclick = () => deleteMember(btn.dataset.id);
   });
 }
 
-async function saveMember(card){
-  const id = card.dataset.id;
+async function updateCount(memberId, supplier, delta){
+  const existing = orders.find(o => o.member_id === memberId && o.supplier_name === supplier);
+  const newCount = Math.max(0, (existing ? existing.unprocessed_count : 0) + delta);
+  if(existing){
+    await sb.from('supplier_orders').update({ unprocessed_count: newCount, updated_at: new Date().toISOString() }).eq('id', existing.id);
+  } else {
+    await sb.from('supplier_orders').insert({ member_id: memberId, supplier_name: supplier, unprocessed_count: newCount });
+  }
+  loadAll();
+}
+
+async function updateCutoff(memberId, supplier, cutoffTime){
+  const existing = orders.find(o => o.member_id === memberId && o.supplier_name === supplier);
+  if(existing){
+    await sb.from('supplier_orders').update({ cutoff_time: cutoffTime }).eq('id', existing.id);
+  } else {
+    await sb.from('supplier_orders').insert({ member_id: memberId, supplier_name: supplier, cutoff_time: cutoffTime, unprocessed_count: 0 });
+  }
+  loadAll();
+}
+
+async function saveMember(id, card){
   const payload = {
-    name: card.querySelector('.name-input').value.trim(),
-    shift: card.querySelector('.shift-input').value.trim(),
-    assigned_suppliers: card.querySelector('.assigned-input').value.trim(),
-    monitored_suppliers: card.querySelector('.monitored-input').value.trim(),
-    notes: card.querySelector('.notes-input').value.trim(),
+    name: card.querySelector('.name-edit').value.trim(),
+    shift: card.querySelector('.shift-edit').value.trim(),
+    assigned_suppliers: card.querySelector('.suppliers-edit').value.trim(),
   };
-  const { error } = await supabaseClient.from('members').update(payload).eq('id', id);
-  if(error){ alert('Save failed: ' + error.message); return; }
-  loadData();
+  await sb.from('members').update(payload).eq('id', id);
+  loadAll();
 }
 
-async function deleteMember(card){
-  if(!confirm('Remove this member from the dashboard?')) return;
-  const { error } = await supabaseClient.from('members').delete().eq('id', card.dataset.id);
-  if(error){ alert('Delete failed: ' + error.message); return; }
-  loadData();
+async function deleteMember(id){
+  if(!confirm('Remove this member?')) return;
+  await sb.from('members').delete().eq('id', id);
+  loadAll();
 }
 
-document.getElementById('addBtn').addEventListener('click', async () => {
-  const { error } = await supabaseClient.from('members').insert({ name: 'New member', shift: '', assigned_suppliers: '', monitored_suppliers: '', notes: '' });
-  if(error){ alert('Add failed: ' + error.message); return; }
-  loadData();
-});
-
+document.getElementById('addBtn').onclick = async () => {
+  await sb.from('members').insert({ name: 'New member', shift: '', assigned_suppliers: '', monitored_suppliers: '', notes: '' });
+  loadAll();
+};
 document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('shiftFilter').addEventListener('change', render);
 
 checkSession();
+setInterval(render, 60000); // re-check cut-off warnings every minute
 </script>
 </body>
 </html>

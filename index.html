@@ -71,7 +71,7 @@
   .add-btn{background:var(--accent-soft);color:var(--accent);border:1px solid rgba(14,165,160,0.35);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;white-space:nowrap;}
 
   /* Grid */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;padding:16px 28px 40px;}
+  .grid{display:flex;flex-direction:row;gap:16px;padding:16px 28px 40px;align-items:flex-start;}
 
   /* Member card */
   .member-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
@@ -138,12 +138,12 @@
   .supplier-row.passed{ border-color:rgba(220,38,38,0.3);background:var(--bad-bg); opacity:0.7; }
   .supplier-row.no-alarm{ opacity:0.6; border-style:dashed; }
   .member-card.has-alert{ animation:flashCard 1.2s ease-in-out infinite; }
-  .team-section{margin-bottom:24px;}
-  .team-header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-radius:8px;background:var(--panel);border:1px solid var(--line);margin-bottom:12px;}
-  .team-name{font-size:14px;font-weight:700;}
-  .team-shift-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);margin-left:8px;}
+  .team-section{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;}
+  .team-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-radius:8px;background:var(--panel);border:1px solid var(--line);}
+  .team-name{font-size:14px;font-weight:800;}
+  .team-shift-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);margin-left:8px;font-weight:600;}
   .team-count{font-size:11px;color:var(--muted);}
-  .inner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .inner-grid{display:flex;flex-direction:column;gap:12px;}
   .empty-state{padding:60px 28px;text-align:center;color:var(--muted);grid-column:1/-1;}
   footer{padding:12px 28px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
   #app{display:none;}

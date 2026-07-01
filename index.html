@@ -138,6 +138,12 @@
   .supplier-row.passed{ border-color:rgba(220,38,38,0.3);background:var(--bad-bg); opacity:0.7; }
   .supplier-row.no-alarm{ opacity:0.6; border-style:dashed; }
   .member-card.has-alert{ animation:flashCard 1.2s ease-in-out infinite; }
+  .team-section{margin-bottom:24px;}
+  .team-header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-radius:8px;background:var(--panel);border:1px solid var(--line);margin-bottom:12px;}
+  .team-name{font-size:14px;font-weight:700;}
+  .team-shift-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);margin-left:8px;}
+  .team-count{font-size:11px;color:var(--muted);}
+  .inner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
   .empty-state{padding:60px 28px;text-align:center;color:var(--muted);grid-column:1/-1;}
   footer{padding:12px 28px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
   #app{display:none;}
@@ -314,6 +320,14 @@ function isAlarmDay(memberName, supplier, dayName){
   }
   return true; // supplier not in list = always alarm
 }
+
+/* ======= TEAM GROUPINGS ======= */
+const TEAMS = [
+  { manager:'Krista', label:"Krista's Team", shift:'UK Shift', color:'#4fd1c5', members:['Krista','Ellen','Eden','Trixy','Renilyn'] },
+  { manager:'Marie',  label:"Marie's Team",  shift:'US Shift', color:'#818cf8', members:['Marie','Rosemarie','Hazel'] },
+  { manager:'Ailene', label:"Ailene's Team", shift:'AU Shift', color:'#f2b84b', members:['Ailene','Anelie','Vanessa','Nisa','Jade'] },
+];
+const ALL_TEAM_MEMBERS = new Set(TEAMS.flatMap(t=>t.members));
 
 /* ======= SCHEDULE DATA (from roster) ======= */
 const ROSTER = {
@@ -613,7 +627,9 @@ function render(){
 
   if(!filtered.length){grid.innerHTML='<div class="empty-state">No members match. Try a different filter or tab.</div>';return;}
 
-  grid.innerHTML=filtered.map(member=>{
+  // Generate cards into a map
+  const cardMap={};
+  filtered.forEach(member=>{
     const suppliers=splitList(member.assigned_suppliers);
     ensureOrderRows(member.id,suppliers);
     const roster=ROSTER[member.name];
@@ -679,7 +695,7 @@ function render(){
       const cutoff = isSpecial ? (SPECIAL_CUTOFFS[sup][todayName]||'') : (row?.cutoff_time||'');
       return getCutoffStatus(cutoff).status === 'bad';
     });
-    return`<div class="member-card ${hasBadCutoff ? 'has-alert' : ''}" data-id="${member.id}">
+    const cardHtml=`<div class="member-card ${hasBadCutoff ? 'has-alert' : ''}" data-id="${member.id}">
       <div class="card-header">
         <div>
           <div class="name">${member.name}</div>
@@ -725,8 +741,34 @@ function render(){
         <button class="save-btn" data-id="${member.id}">Save</button>
         <button class="del-btn" data-id="${member.id}">Delete</button>
       </div>
+    cardMap[member.id]=cardHtml;
+  });
+  });
+
+  // Assemble by team
+  let teamHtml='';
+  TEAMS.forEach(team=>{
+    const teamMembers=filtered.filter(m=>team.members.includes(m.name));
+    if(!teamMembers.length) return;
+    const onShiftCount=teamMembers.filter(m=>{
+      const r=ROSTER[m.name];
+      const s=r?r.schedule[todayName]:'';
+      return m.status!=='absent'&&s&&s!=='OFF';
+    }).length;
+    const cardsHtml=teamMembers.map(m=>cardMap[m.id]||'').join('');
+    teamHtml+=`<div class="team-section">
+      <div class="team-header" style="border-left:3px solid ${team.color}">
+        <div><span class="team-name">${team.label}</span><span class="team-shift-badge" style="color:${team.color};border-color:${team.color}40">${team.shift}</span></div>
+        <span class="team-count">${onShiftCount} on shift today · ${teamMembers.length} total</span>
+      </div>
+      <div class="inner-grid">${cardsHtml}</div>
     </div>`;
-  }).join('');
+  });
+  const others=filtered.filter(m=>!ALL_TEAM_MEMBERS.has(m.name));
+  if(others.length){
+    teamHtml+=`<div class="team-section"><div class="team-header" style="border-left:3px solid var(--muted)"><span class="team-name">Other Members</span></div><div class="inner-grid">${others.map(m=>cardMap[m.id]||'').join('')}</div></div>`;
+  }
+  grid.innerHTML=teamHtml||'<div style="padding:40px;text-align:center;color:var(--muted)">No members match.</div>';
 
   // Events
   grid.querySelectorAll('.cutoff-input').forEach(i=>i.onchange=()=>updateCutoff(i.dataset.member,i.dataset.supplier,i.value));
@@ -737,9 +779,11 @@ function render(){
 
 function renderRoster(filtered,todayName,grid){
   if(!filtered.length){grid.innerHTML='<div class="empty-state">No members to show.</div>';return;}
-  grid.innerHTML=filtered.map(member=>{
+  // Generate roster cards
+  const rosterCardMap={};
+  filtered.forEach(member=>{
     const roster=ROSTER[member.name];
-    if(!roster)return'';
+    if(!roster){rosterCardMap[member.id]='';return;}
     const cells=DAYS.map((d,i)=>{
       const shift=roster.schedule[d]||'';
       const isOff=!shift||shift==='OFF';
@@ -749,20 +793,30 @@ function renderRoster(filtered,todayName,grid){
         <div class="day-shift">${isOff?'OFF':shift}</div>
       </div>`;
     }).join('');
-    const hasBadCutoff = suppliers.some(sup => {
-      const row = orders.find(o => o.member_id === member.id && o.supplier_name === sup);
-      const isSpecial = SPECIAL_CUTOFFS[sup] !== undefined;
-      const cutoff = isSpecial ? (SPECIAL_CUTOFFS[sup][todayName]||'') : (row?.cutoff_time||'');
-      return getCutoffStatus(cutoff).status === 'bad';
-    });
-    return`<div class="member-card ${hasBadCutoff ? 'has-alert' : ''}" data-id="${member.id}">
+    rosterCardMap[member.id]=`<div class="member-card" data-id="${member.id}">
       <div class="card-header">
         <div><div class="name">${member.name}</div>${roster.role?`<div class="role">${roster.role}</div>`:''}</div>
         <div class="${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'shift-chip on-shift':'shift-chip off-today'}">${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'✅ On':'😴 Off'}</div>
       </div>
       <div class="card-section"><div class="section-title">Weekly Roster</div><div class="week-grid">${cells}</div></div>
     </div>`;
-  }).join('');
+  });
+  // Group by team
+  let rosterHtml='';
+  TEAMS.forEach(team=>{
+    const tm=filtered.filter(m=>team.members.includes(m.name));
+    if(!tm.length)return;
+    rosterHtml+=`<div class="team-section">
+      <div class="team-header" style="border-left:3px solid ${team.color}">
+        <span class="team-name">${team.label}</span>
+        <span class="team-shift-badge" style="color:${team.color};border-color:${team.color}40">${team.shift}</span>
+      </div>
+      <div class="inner-grid">${tm.map(m=>rosterCardMap[m.id]||'').join('')}</div>
+    </div>`;
+  });
+  const rOthers=filtered.filter(m=>!ALL_TEAM_MEMBERS.has(m.name));
+  if(rOthers.length) rosterHtml+=`<div class="team-section"><div class="team-header" style="border-left:3px solid var(--muted)"><span class="team-name">Other Members</span></div><div class="inner-grid">${rOthers.map(m=>rosterCardMap[m.id]||'').join('')}</div></div>`;
+  grid.innerHTML=rosterHtml;
 }
 
 async function updateCutoff(memberId,supplier,cutoffTime){

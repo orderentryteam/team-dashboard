@@ -204,6 +204,22 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let members=[], orders=[], currentTab='today';
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+// Suppliers with automatic day-based cut-off times
+const SPECIAL_CUTOFFS = {
+  'Dales':    { Mon:'03:00', Tue:'02:00', Wed:'',     Thu:'02:00', Fri:'',     Sat:'',     Sun:'' },
+  'Farmford': { Mon:'08:00', Tue:'08:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'09:00', Sun:'' }
+};
+
+// Suppliers with automatic day-based START times (array = multiple shifts that day)
+const SPECIAL_STARTS = {
+  'Fisher and Woods': { Mon:'',                   Tue:'05:00', Wed:'05:00', Thu:'04:00', Fri:'04:00', Sat:'04:00', Sun:'' },
+  'Henderson OE':     { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'18:00', Sat:'',      Sun:'' },
+  'Henderson INV':    { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'',      Sat:'03:00', Sun:'' },
+  'Dales':            { Mon:['01:00','20:00'],     Tue:'',      Wed:'20:00', Thu:'',      Fri:'',      Sat:'',      Sun:'' },
+  'Tassie FineFood':  { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'',      Sat:'',      Sun:'14:00' },
+  'Tassie FineFoods': { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'',      Sat:'',      Sun:'14:00' },
+};
+
 /* ======= SCHEDULE DATA (from roster) ======= */
 const ROSTER = {
   'Krista':    { role:'Shift Manager', schedule:{ Mon:'1:00am-10:00am', Tue:'1:00am-10:00am', Wed:'OFF', Thu:'1:00am-10:00am', Fri:'1:00am-10:00am', Sat:'1:00am-10:00am', Sun:'OFF' } },
@@ -383,7 +399,13 @@ function updateDayBar(){
   const onShift=Object.entries(ROSTER).filter(([n,d])=>d.schedule[todayName]&&d.schedule[todayName]!=='OFF').length;
   const offToday=Object.entries(ROSTER).filter(([n,d])=>!d.schedule[todayName]||d.schedule[todayName]==='OFF').length;
   let alerts=0,warns=0;
-  orders.forEach(o=>{const{status}=getCutoffStatus(o.cutoff_time);if(status==='bad')alerts++;else if(status==='warn')warns++;});
+  const todayNameSum=DAYS[nowAU().getDay()];
+  orders.forEach(o=>{
+    const isSpecial=SPECIAL_CUTOFFS[o.supplier_name]!==undefined;
+    const ct=isSpecial?(SPECIAL_CUTOFFS[o.supplier_name][todayNameSum]||''):(o.cutoff_time||'');
+    const{status}=getCutoffStatus(ct);
+    if(status==='bad')alerts++;else if(status==='warn')warns++;
+  });
 
   document.getElementById('summaryPills').innerHTML=`
     <div class="sum-pill on">✅ ${onShift} on shift</div>
@@ -405,6 +427,20 @@ function getCutoffStatus(cutoffTime){
   if(diff<=60)return{status:'warn',label:`${Math.round(diff)}min left`,icon:'🟡'};
   const hrs=Math.floor(diff/60),mins=Math.round(diff%60);
   return{status:'ok',label:hrs>0?`${hrs}h ${mins}m left`:`${Math.round(diff)}min left`,icon:'🟢'};
+}
+
+function getStartStatus(startTime){
+  if(!startTime) return{status:'none',label:'Set start',icon:'⚪'};
+  const now=nowAU();
+  const[h,m]=startTime.split(':').map(Number);
+  const start=nowAU();start.setHours(h,m,0,0);
+  const diff=(start-now)/60000;
+  if(diff<-60) return{status:'done',label:'Started',icon:'✅'};
+  if(diff<0) return{status:'started',label:'Starting now!',icon:'🔵'};
+  if(diff<=5) return{status:'urgent',label:`${Math.round(diff)}min to start`,icon:'🔴'};
+  if(diff<=30) return{status:'soon',label:`${Math.round(diff)}min to start`,icon:'🟡'};
+  const hrs=Math.floor(diff/60),mins=Math.round(diff%60);
+  return{status:'ok',label:hrs>0?`${hrs}h ${mins}m to start`:`${Math.round(diff)}min to start`,icon:'🔵'};
 }
 
 function splitList(v){return(v||'').split(';').map(s=>s.trim()).filter(Boolean);}
@@ -477,7 +513,9 @@ function render(){
 
     const hasBadCutoff = suppliers.some(sup => {
       const row = orders.find(o => o.member_id === member.id && o.supplier_name === sup);
-      const s = getCutoffStatus(row?.cutoff_time||'').status; return s === 'bad';
+      const isSpecial = SPECIAL_CUTOFFS[sup] !== undefined;
+      const cutoff = isSpecial ? (SPECIAL_CUTOFFS[sup][todayName]||'') : (row?.cutoff_time||'');
+      return getCutoffStatus(cutoff).status === 'bad';
     });
     return`<div class="member-card ${hasBadCutoff ? 'has-alert' : ''}" data-id="${member.id}">
       <div class="card-header">
@@ -501,6 +539,7 @@ function render(){
 
   // Events
   grid.querySelectorAll('.cutoff-input').forEach(i=>i.onchange=()=>updateCutoff(i.dataset.member,i.dataset.supplier,i.value));
+  grid.querySelectorAll('.start-input').forEach(i=>i.onchange=()=>updateStart(i.dataset.member,i.dataset.supplier,i.value));
   grid.querySelectorAll('.save-btn').forEach(b=>b.onclick=()=>saveMember(b.dataset.id,b.closest('.member-card')));
   grid.querySelectorAll('.del-btn').forEach(b=>b.onclick=()=>deleteMember(b.dataset.id));
 }
@@ -521,7 +560,9 @@ function renderRoster(filtered,todayName,grid){
     }).join('');
     const hasBadCutoff = suppliers.some(sup => {
       const row = orders.find(o => o.member_id === member.id && o.supplier_name === sup);
-      const s = getCutoffStatus(row?.cutoff_time||'').status; return s === 'bad';
+      const isSpecial = SPECIAL_CUTOFFS[sup] !== undefined;
+      const cutoff = isSpecial ? (SPECIAL_CUTOFFS[sup][todayName]||'') : (row?.cutoff_time||'');
+      return getCutoffStatus(cutoff).status === 'bad';
     });
     return`<div class="member-card ${hasBadCutoff ? 'has-alert' : ''}" data-id="${member.id}">
       <div class="card-header">
@@ -539,6 +580,13 @@ async function updateCutoff(memberId,supplier,cutoffTime){
   else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,cutoff_time:cutoffTime,unprocessed_count:0});
   loadAll();
 }
+async function updateStart(memberId,supplier,startTime){
+  const ex=orders.find(o=>o.member_id===memberId&&o.supplier_name===supplier);
+  if(ex) await sb.from('supplier_orders').update({start_time:startTime}).eq('id',ex.id);
+  else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,start_time:startTime,cutoff_time:'',unprocessed_count:0});
+  loadAll();
+}
+
 async function saveMember(id,card){
   await sb.from('members').update({name:card.querySelector('.name-edit').value.trim(),shift:card.querySelector('.shift-edit').value.trim(),assigned_suppliers:card.querySelector('.suppliers-edit').value.trim()}).eq('id',id);
   loadAll();
@@ -563,6 +611,26 @@ function unlockAudio(){
     document.getElementById('alarmStatus').textContent = '🔔 Alarm: ON';
     document.getElementById('alarmStatus').style.color = 'var(--good)';
   } catch(e){ console.warn('Audio unlock failed:', e); }
+}
+
+function playStartAlarm(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const t = audioCtx.currentTime;
+    // Rising two-tone bell — D5 and A5 perfect fifth, warm and distinct
+    [[587.33,0],[880,0.25],[587.33,0.6],[880,0.85],[587.33,1.2],[880,1.45]].forEach(([freq,offset])=>{
+      const osc=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      osc.connect(gain);gain.connect(audioCtx.destination);
+      osc.type='sine';
+      osc.frequency.setValueAtTime(freq,t+offset);
+      gain.gain.setValueAtTime(0,t+offset);
+      gain.gain.linearRampToValueAtTime(0.2,t+offset+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+offset+0.35);
+      osc.start(t+offset);osc.stop(t+offset+0.35);
+    });
+  }catch(e){console.warn('Start alarm error:',e);}
 }
 
 function playChime(freq, startTime, duration){
@@ -603,10 +671,14 @@ function testAlarm(){
 
 function checkAlarms(){
   if(!orders.length) return;
+  const todayNameAlarm = DAYS[nowAU().getDay()];
   orders.forEach(o => {
-    if(!o.cutoff_time) return;
-    const { status } = getCutoffStatus(o.cutoff_time);
-    const alertKey = `${o.id}-${o.cutoff_time}`;
+    // --- CUT-OFF CHECK ---
+    const isSpecialCO = SPECIAL_CUTOFFS[o.supplier_name] !== undefined;
+    const cutoffToday = isSpecialCO ? (SPECIAL_CUTOFFS[o.supplier_name][todayNameAlarm]||'') : (o.cutoff_time||'');
+    if(cutoffToday){
+      const { status } = getCutoffStatus(cutoffToday);
+      const alertKey = `co-${o.id}-${cutoffToday}`;
     if((status === 'bad') && !firedAlerts.has(alertKey)){
       firedAlerts.add(alertKey);
       playAlarm();
@@ -627,7 +699,30 @@ function checkAlarms(){
         });
       }
     }
-    if(status !== 'bad' && status !== 'passed') firedAlerts.delete(alertKey);
+      if(status !== 'bad' && status !== 'passed') firedAlerts.delete(alertKey);
+    }
+
+    // --- START TIME CHECK ---
+    const isSpecialST = SPECIAL_STARTS[o.supplier_name] !== undefined;
+    const startRaw = isSpecialST ? SPECIAL_STARTS[o.supplier_name][todayNameAlarm] : (o.start_time||'');
+    const startTimes = Array.isArray(startRaw) ? startRaw : (startRaw?[startRaw]:[]);
+    startTimes.forEach(st => {
+      const { status:ss } = getStartStatus(st);
+      const startKey = `st-${o.id}-${st}-${todayNameAlarm}`;
+      if((ss==='urgent') && !firedAlerts.has(startKey)){
+        firedAlerts.add(startKey);
+        playStartAlarm();
+        if(Notification.permission==='granted'){
+          const member=members.find(m=>m.id===o.member_id);
+          const name=member?member.name:'Someone';
+          new Notification('🔵 Shift Starting Soon!',{
+            body:`${name} — ${o.supplier_name} starts in 5 mins! (${st})`,
+            requireInteraction:true
+          });
+        }
+      }
+      if(ss==='done'||ss==='ok') firedAlerts.delete(startKey);
+    });
   });
   // Keep SW in sync
   sendCutoffsToSW();

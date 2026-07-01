@@ -210,17 +210,54 @@ const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 // Suppliers with automatic day-based cut-off times
 const SPECIAL_CUTOFFS = {
   'Dales':    { Mon:'03:00', Tue:'02:00', Wed:'',     Thu:'02:00', Fri:'',     Sat:'',     Sun:'' },
-  'Farmford': { Mon:'08:00', Tue:'08:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'09:00', Sun:'' }
+  'Farmford': { Mon:'08:00', Tue:'08:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'09:00', Sun:'' },
+  'Adams':    { Mon:'08:30', Tue:'08:30', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'09:00', Sun:'' },
+};
+
+// Default start times for suppliers (same every day) — editable in dashboard
+const DEFAULT_START_TIMES = {
+  'Fruitique':          '21:00',
+  'Gamekeepers':        '20:00',
+  'Game Keepers':       '20:00',
+  'Oceanmade':          '17:00',
+  'Ocean Made':         '17:00',
+  'Coastal Fresh':      '15:00',
+  'Fussy Fruit':        '19:30',
+  'Tim and Terry':      '02:00',
+  'Tim & Terry':        '02:00',
+  'MyButcher':          '10:30',
+  'Mybutcher':          '10:30',
+  'My Butcher':         '10:30',
+  'LJ':                 '18:00',
+  'L.J Parthenos':      '18:00',
+  'LJ Parthenos':       '18:00',
+  'Diamond':            '22:30',
+  'Diamond Foodservice':'22:30',
+  'Bodiam':             '03:00',
+  'Hillheads':          '08:00',
+  'Greenpoint':         '11:00',
+  'MCB':                '07:00',
+  'Heritage':           '05:00',
+  'Farmford':           '04:00',
+  'Farm Food':          '04:00',
+  'Clover':             '06:00',
+  'Cloverfresh':        '06:00',
+  'Adams':              '01:30',
+  'Adams Wholesale UK': '01:30',
 };
 
 // Suppliers with automatic day-based START times (array = multiple shifts that day)
 const SPECIAL_STARTS = {
-  'Fisher and Woods': { Mon:'',                   Tue:'05:00', Wed:'05:00', Thu:'04:00', Fri:'04:00', Sat:'04:00', Sun:'' },
-  'Henderson OE':     { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'18:00', Sat:'',      Sun:'' },
-  'Henderson INV':    { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'',      Sat:'03:00', Sun:'' },
-  'Dales':            { Mon:['01:00','20:00'],     Tue:'',      Wed:'20:00', Thu:'',      Fri:'',      Sat:'',      Sun:'' },
-  'Tassie FineFood':  { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'',      Sat:'',      Sun:'14:00' },
-  'Tassie FineFoods': { Mon:'',                   Tue:'',      Wed:'',      Thu:'',      Fri:'',      Sat:'',      Sun:'14:00' },
+  'Fisher and Woods': { Mon:'',               Tue:'05:00', Wed:'05:00', Thu:'04:00', Fri:'04:00', Sat:'04:00', Sun:'' },
+  'Fisher & Woods':   { Mon:'',               Tue:'05:00', Wed:'05:00', Thu:'04:00', Fri:'04:00', Sat:'04:00', Sun:'' },
+  'Henderson OE':     { Mon:'16:00',          Tue:'16:00', Wed:'',      Thu:'16:00', Fri:'18:00', Sat:'',      Sun:'' },
+  'Hendersons OE':    { Mon:'16:00',          Tue:'16:00', Wed:'',      Thu:'16:00', Fri:'18:00', Sat:'',      Sun:'' },
+  'Henderson INV':    { Mon:'04:30',          Tue:'04:30', Wed:'',      Thu:'04:30', Fri:'03:00', Sat:'',      Sun:'' },
+  'Henderson Inv':    { Mon:'04:30',          Tue:'04:30', Wed:'',      Thu:'04:30', Fri:'03:00', Sat:'',      Sun:'' },
+  'Dales':            { Mon:['01:00','20:00'],Tue:'',      Wed:'20:00', Thu:'',      Fri:'',      Sat:'',      Sun:'' },
+  'Tassie FineFood':  { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
+  'Tassie FineFoods': { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
+  'Tassie Finefoods': { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
 };
 
 /* ======= SCHEDULE DATA (from roster) ======= */
@@ -549,9 +586,14 @@ function render(){
       let startDisplay='';
       if(isSpecialStart){
         const labels=startTimes.length?startTimes.join(' & '):'None today';
-        startDisplay=`<div class="cutoff-row"><span style="color:#818cf8;font-size:11px;">🔵 Start: ${labels}</span></div>`;
+        startDisplay=`<div class="cutoff-row"><span style="color:#818cf8;font-size:11px;">🔵 Start: ${labels} <span style="font-size:9px;opacity:0.6">(auto)</span></span></div>`;
       } else {
-        startDisplay=`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${row?.start_time||''}" data-member="${member.id}" data-supplier="${sup}"></div>`;
+        // Use DB value if saved, else fall back to DEFAULT_START_TIMES
+        const dbStartVal=row?.start_time||'';
+        const defaultStartVal=DEFAULT_START_TIMES[sup]||'';
+        const startVal=dbStartVal||defaultStartVal;
+        const isDefault=!dbStartVal&&!!defaultStartVal;
+        startDisplay=`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${startVal}" data-member="${member.id}" data-supplier="${sup}" title="${isDefault?'Pre-filled from schedule — save to lock in':''}"> ${isDefault?'<span style="font-size:9px;color:var(--accent);">●</span>':''}</div>`;
       }
 
       const rowClass=`supplier-row ${cs==='none'?'':cs==='passed'?'passed':cs}`;
@@ -826,7 +868,7 @@ function checkAlarms(){
 
     // --- START TIME CHECK ---
     const isSpecialST = SPECIAL_STARTS[o.supplier_name] !== undefined;
-    const startRaw = isSpecialST ? SPECIAL_STARTS[o.supplier_name][todayNameAlarm] : (o.start_time||'');
+    let startRaw = isSpecialST ? SPECIAL_STARTS[o.supplier_name][todayNameAlarm] : (o.start_time||DEFAULT_START_TIMES[o.supplier_name]||'');
     const startTimes = Array.isArray(startRaw) ? startRaw : (startRaw?[startRaw]:[]);
     startTimes.forEach(st => {
       const { status:ss } = getStartStatus(st);

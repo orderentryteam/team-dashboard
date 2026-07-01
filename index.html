@@ -377,7 +377,7 @@ async function loadAll(){
   members=m||[];orders=o||[];
   checkAlarms();
   sendCutoffsToSW();
-  setStatus('Live · '+nowAU().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney'}),'live');
+  setStatus('Live · '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit',second:'2-digit'}),'live');
   updateDayBar();populateShiftFilter();render();
 }
 
@@ -389,7 +389,17 @@ async function ensureOrderRows(memberId,suppliers){
 }
 
 /* ======= DAY BAR ======= */
-function nowAU(){ return new Date(new Date().toLocaleString('en-US',{timeZone:'Australia/Sydney'})); }
+function nowAU(){
+  // Reliable AU time regardless of browser timezone
+  const parts=new Intl.DateTimeFormat('en',{
+    timeZone:'Australia/Sydney',
+    year:'numeric',month:'numeric',day:'numeric',
+    hour:'numeric',minute:'numeric',second:'numeric',hour12:false
+  }).formatToParts(new Date());
+  const get=t=>parseInt(parts.find(p=>p.type===t)?.value||'0');
+  const h=get('hour');
+  return new Date(get('year'),get('month')-1,get('day'),h===24?0:h,get('minute'),get('second'));
+}
 function updateDayBar(){
   const now=nowAU();
   const todayIdx=now.getDay();

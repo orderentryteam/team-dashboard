@@ -246,6 +246,24 @@ const DEFAULT_START_TIMES = {
   'Adams Wholesale UK': '01:30',
 };
 
+// Robust lookup for default start times — handles case and spacing variations
+function getDefaultStart(sup){
+  if(!sup) return '';
+  const s = sup.trim();
+  // 1. Exact match
+  if(DEFAULT_START_TIMES[s]) return DEFAULT_START_TIMES[s];
+  // 2. Case-insensitive match
+  const lc = s.toLowerCase();
+  for(const [k,v] of Object.entries(DEFAULT_START_TIMES)){
+    if(k.toLowerCase() === lc) return v;
+  }
+  // 3. Partial match — DB name starts with key or vice versa
+  for(const [k,v] of Object.entries(DEFAULT_START_TIMES)){
+    if(lc.startsWith(k.toLowerCase()) || k.toLowerCase().startsWith(lc)) return v;
+  }
+  return '';
+}
+
 // Suppliers with automatic day-based START times (array = multiple shifts that day)
 const SPECIAL_STARTS = {
   'Fisher and Woods': { Mon:'',               Tue:'05:00', Wed:'05:00', Thu:'04:00', Fri:'04:00', Sat:'04:00', Sun:'' },
@@ -590,7 +608,7 @@ function render(){
       } else {
         // Use DB value if saved, else fall back to DEFAULT_START_TIMES
         const dbStartVal=row?.start_time||'';
-        const defaultStartVal=DEFAULT_START_TIMES[sup]||'';
+        const defaultStartVal=getDefaultStart(sup);
         const startVal=dbStartVal||defaultStartVal;
         const isDefault=!dbStartVal&&!!defaultStartVal;
         startDisplay=`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${startVal}" data-member="${member.id}" data-supplier="${sup}" title="${isDefault?'Pre-filled from schedule — save to lock in':''}"> ${isDefault?'<span style="font-size:9px;color:var(--accent);">●</span>':''}</div>`;
@@ -868,7 +886,7 @@ function checkAlarms(){
 
     // --- START TIME CHECK ---
     const isSpecialST = SPECIAL_STARTS[o.supplier_name] !== undefined;
-    let startRaw = isSpecialST ? SPECIAL_STARTS[o.supplier_name][todayNameAlarm] : (o.start_time||DEFAULT_START_TIMES[o.supplier_name]||'');
+    let startRaw = isSpecialST ? SPECIAL_STARTS[o.supplier_name][todayNameAlarm] : (o.start_time||getDefaultStart(o.supplier_name)||'');
     const startTimes = Array.isArray(startRaw) ? startRaw : (startRaw?[startRaw]:[]);
     startTimes.forEach(st => {
       const { status:ss } = getStartStatus(st);

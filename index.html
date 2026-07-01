@@ -136,6 +136,7 @@
   @keyframes flashCard{0%,100%{box-shadow:none;}50%{box-shadow:0 0 18px 4px rgba(220,38,38,0.5);}}
   .supplier-row.bad{ animation:flashAlert 1.2s ease-in-out infinite; border-color:rgba(220,38,38,0.5);background:var(--bad-bg); }
   .supplier-row.passed{ border-color:rgba(220,38,38,0.3);background:var(--bad-bg); opacity:0.7; }
+  .supplier-row.no-alarm{ opacity:0.6; border-style:dashed; }
   .member-card.has-alert{ animation:flashCard 1.2s ease-in-out infinite; }
   .empty-state{padding:60px 28px;text-align:center;color:var(--muted);grid-column:1/-1;}
   footer{padding:12px 28px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
@@ -277,6 +278,42 @@ const SPECIAL_STARTS = {
   'Tassie FineFoods': { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
   'Tassie Finefoods': { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
 };
+
+/* ======= SUPPLIER DAY ASSIGNMENTS =======
+   Defines which days each member handles specific suppliers.
+   Suppliers NOT listed here → alarm every day as normal.
+   Suppliers listed here → show always, alarm only on assigned days. */
+const SUPPLIER_DAYS = {
+  'Eden':      { 'Hillheads':        ['Mon'] },
+  'Renilyn':   { 'Hillheads':        ['Tue','Wed','Thu','Fri','Sat'],
+                 'MyButcher':        ['Tue','Wed','Thu','Fri'],
+                 'Mybutcher':        ['Tue','Wed','Thu','Fri'],
+                 'Fisher and Woods': ['Tue','Wed','Thu','Fri','Sat'],
+                 'Fisher & Woods':   ['Tue','Wed','Thu','Fri','Sat'] },
+  'Ellen':     { 'MyButcher':        ['Mon'],
+                 'Mybutcher':        ['Mon'] },
+  'Marie':     { 'Dales':            ['Mon'] },
+  'Jade':      { 'Dales':            ['Mon'] },
+  'Nisa':      { 'MCB':              ['Mon'],
+                 'Oceanmade':        ['Fri'] },
+  'Anelie':    { 'MCB':              ['Tue','Wed','Thu','Fri','Sat'] },
+  'Rosemarie': { 'Fruitique':        ['Wed'] },
+  'Trixy':     { 'Farmford':         ['Sat'],
+                 'Clover':           ['Sat'],
+                 'Cloverfresh':      ['Sat'] },
+  'Ailene':    { 'Oceanmade':        ['Mon','Tue','Wed','Thu','Sun'] },
+};
+
+function isAlarmDay(memberName, supplier, dayName){
+  const memberDays = SUPPLIER_DAYS[memberName];
+  if(!memberDays) return true; // no restriction = always alarm
+  // Check exact and case-insensitive match
+  const sup = supplier.trim();
+  for(const [k,days] of Object.entries(memberDays)){
+    if(k.toLowerCase() === sup.toLowerCase()) return days.includes(dayName);
+  }
+  return true; // supplier not in list = always alarm
+}
 
 /* ======= SCHEDULE DATA (from roster) ======= */
 const ROSTER = {
@@ -614,7 +651,8 @@ function render(){
         startDisplay=`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${startVal}" data-member="${member.id}" data-supplier="${sup}" title="${isDefault?'Pre-filled from schedule — save to lock in':''}"> ${isDefault?'<span style="font-size:9px;color:var(--accent);">●</span>':''}</div>`;
       }
 
-      const rowClass=`supplier-row ${cs==='none'?'':cs==='passed'?'passed':cs}`;
+      const alarmActive=isAlarmDay(member.name, sup, todayName);
+      const rowClass=`supplier-row ${cs==='none'?'':cs==='passed'?'passed':cs}${!alarmActive?' no-alarm':''}`;
       return`<div class="${rowClass}">
         <div style="flex:1;">
           <div class="sup-name">${sup}</div>
@@ -648,8 +686,7 @@ function render(){
           ${roster?.role?`<div class="role">${roster.role}</div>`:''}
         </div>
         ${(()=>{
-        const memberData=members.find(m=>m.id===member.id);
-        const isAbsent=memberData&&memberData.status==='absent';
+        const isAbsent=member.status==='absent';
         if(isAbsent) return`<div class="shift-chip" style="background:rgba(220,38,38,0.1);color:var(--bad);border:1px solid rgba(220,38,38,0.3);cursor:pointer;" onclick="toggleStatus('${member.id}','absent')">🚫 OOO/Absent</div>`;
         if(isOff) return`<div class="shift-chip off-today">😴 Day Off</div>`;
         return`<div class="shift-chip on-shift" style="cursor:pointer;" onclick="toggleStatus('${member.id}','active')">✅ ${todayShift||'On Shift'}</div>`;
@@ -859,6 +896,8 @@ function checkAlarms(){
     const isSpecialCO = SPECIAL_CUTOFFS[o.supplier_name] !== undefined;
     const cutoffToday = isSpecialCO ? (SPECIAL_CUTOFFS[o.supplier_name][todayNameAlarm]||'') : (o.cutoff_time||'');
     if(cutoffToday){
+      const member=members.find(m=>m.id===o.member_id);
+      const canAlarmCO = member ? isAlarmDay(member.name, o.supplier_name, todayNameAlarm) : true;
       const { status } = getCutoffStatus(cutoffToday);
       const alertKey = `co-${o.id}-${cutoffToday}`;
     if((status === 'bad') && !firedAlerts.has(alertKey)){
@@ -891,17 +930,11 @@ function checkAlarms(){
     startTimes.forEach(st => {
       const { status:ss } = getStartStatus(st);
       const startKey = `st-${o.id}-${st}-${todayNameAlarm}`;
-      if((ss==='urgent') && !firedAlerts.has(startKey)){
+      const mForStart=members.find(m=>m.id===o.member_id);
+      const canAlarmST=mForStart?isAlarmDay(mForStart.name,o.supplier_name,todayNameAlarm):true;
+      if((ss==='urgent') && canAlarmST && !firedAlerts.has(startKey)){
         firedAlerts.add(startKey);
         playStartAlarm();
-        if(Notification.permission==='granted'){
-          const member=members.find(m=>m.id===o.member_id);
-          const name=member?member.name:'Someone';
-          new Notification('🔵 Shift Starting Soon!',{
-            body:`${name} — ${o.supplier_name} starts in 5 mins! (${st})`,
-            requireInteraction:true
-          });
-        }
       }
       if(ss==='done'||ss==='ok') firedAlerts.delete(startKey);
     });
@@ -922,12 +955,6 @@ function checkAlarms(){
         if(diff>=0&&diff<=5&&!firedAlerts.has(reportKey)){
           firedAlerts.add(reportKey);
           playReportAlarm();
-          if(Notification.permission==='granted'){
-            new Notification('📋 Report Due Soon!',{
-              body:`${memberName} — ${supplier} Report at ${t} (${Math.round(diff)} min${Math.round(diff)===1?'':'s'})`,
-              requireInteraction:true
-            });
-          }
         }
         if(diff<-60||diff>30) firedAlerts.delete(reportKey);
       });
@@ -963,19 +990,7 @@ function sendCutoffsToSW(){
 }
 
 // Request notification permission with a prompt
-async function requestNotifPermission(){
-  if(!('Notification' in window)) return;
-  if(Notification.permission === 'default'){
-    const perm = await Notification.requestPermission();
-    if(perm === 'granted'){
-      document.getElementById('notifStatus').textContent = '🔔 Notifications: ON';
-      document.getElementById('notifStatus').style.color = 'var(--good)';
-    }
-  } else if(Notification.permission === 'granted'){
-    document.getElementById('notifStatus').textContent = '🔔 Notifications: ON';
-    document.getElementById('notifStatus').style.color = 'var(--good)';
-  }
-}
+function requestNotifPermission(){} // disabled
 
 // Unlock audio on ANY click
 document.addEventListener('click', unlockAudio);

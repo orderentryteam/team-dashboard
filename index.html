@@ -177,7 +177,10 @@
       <div class="today" id="todayLabel"></div>
       <div class="date-sub" id="dateLabel"></div>
     </div>
-    <div class="summary-pills" id="summaryPills"></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+      <div class="summary-pills" id="summaryPills"></div>
+      <div id="worldClocks" style="font-size:11px;color:var(--muted);text-align:right;"></div>
+    </div>
   </div>
 
   <div class="tabs">
@@ -395,6 +398,10 @@ function updateDayBar(){
   const auDateStr=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney',day:'numeric',month:'long',year:'numeric'});
   document.getElementById('todayLabel').textContent=`${todayName}, ${auDateStr}`;
   document.getElementById('dateLabel').textContent=`🇦🇺 AU Sydney Time: ${auTimeStr} — all cut-off times based on AU time`;
+  const phTime=new Date().toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ukTime=new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const clockEl=document.getElementById('worldClocks');
+  if(clockEl) clockEl.textContent=`🇵🇭 PH Manila: ${phTime}   🇬🇧 UK London: ${ukTime}`;
 
   const onShift=Object.entries(ROSTER).filter(([n,d])=>d.schedule[todayName]&&d.schedule[todayName]!=='OFF').length;
   const offToday=Object.entries(ROSTER).filter(([n,d])=>!d.schedule[todayName]||d.schedule[todayName]==='OFF').length;
@@ -428,6 +435,28 @@ function getCutoffStatus(cutoffTime){
   const hrs=Math.floor(diff/60),mins=Math.round(diff%60);
   return{status:'ok',label:hrs>0?`${hrs}h ${mins}m left`:`${Math.round(diff)}min left`,icon:'🟢'};
 }
+
+// Report alarms (5 mins before) — per member per day
+const REPORTS = {
+  'Heritage': {
+    'Krista':  { Mon:['23:00','00:00'], Tue:['23:00','00:00'] },
+    'Trixy':   { Wed:['23:00','00:00'], Thu:['23:00','00:00'] },
+    'Ellen':   { Fri:['23:00','00:00'], Sat:['23:00','00:00'] },
+  },
+  'Farmford': {
+    'Eden':    { Mon:['20:00','23:00'], Tue:['20:00','23:00'], Wed:['20:00','23:00'], Thu:['20:00','23:00'], Fri:['20:00','23:00'] },
+    'Trixy':   { Sat:['20:00','23:00'] },
+  },
+  'Fisher and Woods': {
+    'Renilyn': {
+      Tue:['05:00','06:00','08:00','09:00'],
+      Wed:['05:00','06:00','08:00','09:00'],
+      Thu:['04:00','06:00','08:00','09:00'],
+      Fri:['04:00','06:00','08:00','09:00'],
+      Sat:['04:00','06:00','08:00','09:00'],
+    }
+  }
+};
 
 function getStartStatus(startTime){
   if(!startTime) return{status:'none',label:'Set start',icon:'⚪'};
@@ -548,9 +577,39 @@ function render(){
           <div class="name">${member.name}</div>
           ${roster?.role?`<div class="role">${roster.role}</div>`:''}
         </div>
-        <div class="${isOff?'shift-chip off-today':'shift-chip on-shift'}">${isOff?'😴 Day Off':todayShift||'On Shift'}</div>
+        ${(()=>{
+        const memberData=members.find(m=>m.id===member.id);
+        const isAbsent=memberData&&memberData.status==='absent';
+        if(isAbsent) return`<div class="shift-chip" style="background:rgba(220,38,38,0.1);color:var(--bad);border:1px solid rgba(220,38,38,0.3);cursor:pointer;" onclick="toggleStatus('${member.id}','absent')">🚫 OOO/Absent</div>`;
+        if(isOff) return`<div class="shift-chip off-today">😴 Day Off</div>`;
+        return`<div class="shift-chip on-shift" style="cursor:pointer;" onclick="toggleStatus('${member.id}','active')">✅ ${todayShift||'On Shift'}</div>`;
+      })()}
       </div>
       ${suppliers.length?`<div class="card-section"><div class="section-title">Suppliers & Cut-off Times</div>${supplierRows}</div>`:''}
+      ${(()=>{
+        // Reports for this member today
+        const reportLines=[];
+        Object.entries(REPORTS).forEach(([supplier,memberMap])=>{
+          const memberReports=memberMap[member.name];
+          if(!memberReports) return;
+          const times=memberReports[todayName];
+          if(!times||!times.length) return;
+          times.forEach(t=>{
+            const now=nowAU();
+            const[h,mi]=t.split(':').map(Number);
+            const rt=nowAU();rt.setHours(h,mi,0,0);
+            const diff=(rt-now)/60000;
+            const icon=diff<-30?'✅':diff<=5?'🔴':diff<=30?'🟡':'📋';
+            const label=diff<-30?'Done':diff<=0?'Now!':diff<=5?`${Math.round(diff)}min`:`${Math.round(diff)}min`;
+            reportLines.push(`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--panel-2);border-radius:6px;margin-bottom:4px;border:1px solid var(--line);">
+              <span style="font-size:12px;font-weight:600;">${supplier} Report <span style="font-size:10px;color:var(--muted);font-weight:400;">${t}</span></span>
+              <span style="font-size:11px;font-weight:600;color:${diff<-30?'var(--good)':diff<=5?'var(--bad)':diff<=30?'var(--warn)':'var(--muted)'};">${icon} ${label}</span>
+            </div>`);
+          });
+        });
+        if(!reportLines.length) return '';
+        return`<div class="card-section"><div class="section-title">📋 Reports Due Today</div>${reportLines.join('')}</div>`;
+      })()}
       <div class="card-section"><div class="section-title">Today's Schedule Breakdown</div><div class="task-list">${taskRows}</div></div>
       <div class="card-edit">
         <input class="name-edit" placeholder="Name" value="${member.name||''}">
@@ -612,6 +671,14 @@ async function updateStart(memberId,supplier,startTime){
   loadAll();
 }
 
+async function toggleStatus(id, currentStatus){
+  const todayAUDate=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
+  const newStatus=currentStatus==='absent'?'active':'absent';
+  const statusDate=newStatus==='absent'?todayAUDate:'';
+  await sb.from('members').update({status:newStatus,status_date:statusDate}).eq('id',id);
+  loadAll();
+}
+
 async function saveMember(id,card){
   await sb.from('members').update({name:card.querySelector('.name-edit').value.trim(),shift:card.querySelector('.shift-edit').value.trim(),assigned_suppliers:card.querySelector('.suppliers-edit').value.trim()}).eq('id',id);
   loadAll();
@@ -636,6 +703,26 @@ function unlockAudio(){
     document.getElementById('alarmStatus').textContent = '🔔 Alarm: ON';
     document.getElementById('alarmStatus').style.color = 'var(--good)';
   } catch(e){ console.warn('Audio unlock failed:', e); }
+}
+
+function playReportAlarm(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const t = audioCtx.currentTime;
+    // Triple descending ding — distinct from chime and bell
+    [[1046.5,0],[880,0.3],[698.46,0.6],[1046.5,1.1],[880,1.4],[698.46,1.7]].forEach(([freq,offset])=>{
+      const osc=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      osc.connect(gain);gain.connect(audioCtx.destination);
+      osc.type='triangle';
+      osc.frequency.setValueAtTime(freq,t+offset);
+      gain.gain.setValueAtTime(0,t+offset);
+      gain.gain.linearRampToValueAtTime(0.2,t+offset+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+offset+0.4);
+      osc.start(t+offset);osc.stop(t+offset+0.4);
+    });
+  }catch(e){console.warn('Report alarm error:',e);}
 }
 
 function playStartAlarm(){
@@ -747,6 +834,33 @@ function checkAlarms(){
         }
       }
       if(ss==='done'||ss==='ok') firedAlerts.delete(startKey);
+    });
+  });
+  // --- REPORT ALARM CHECK ---
+  Object.entries(REPORTS).forEach(([supplier,memberMap])=>{
+    Object.entries(memberMap).forEach(([memberName,dayMap])=>{
+      const times=dayMap[todayNameAlarm];
+      if(!times||!times.length) return;
+      const member=members.find(m=>m.name===memberName);
+      if(!member) return;
+      times.forEach(t=>{
+        const now=nowAU();
+        const[h,mi]=t.split(':').map(Number);
+        const rt=nowAU();rt.setHours(h,mi,0,0);
+        const diff=(rt-now)/60000;
+        const reportKey=`report-${memberName}-${supplier}-${t}-${todayNameAlarm}`;
+        if(diff>=0&&diff<=5&&!firedAlerts.has(reportKey)){
+          firedAlerts.add(reportKey);
+          playReportAlarm();
+          if(Notification.permission==='granted'){
+            new Notification('📋 Report Due Soon!',{
+              body:`${memberName} — ${supplier} Report at ${t} (${Math.round(diff)} min${Math.round(diff)===1?'':'s'})`,
+              requireInteraction:true
+            });
+          }
+        }
+        if(diff<-60||diff>30) firedAlerts.delete(reportKey);
+      });
     });
   });
   // Keep SW in sync

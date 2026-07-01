@@ -5,23 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OE Team Dashboard</title>
 <style>
-  :root{
-    --bg:#f0f4f8;--panel:#fff;--panel-2:#e8edf2;--line:#d1dae3;
-    --text:#1a2332;--muted:#6b7e93;--accent:#0ea5a0;--accent-soft:rgba(14,165,160,0.10);
-    --warn:#d97706;--warn-bg:rgba(217,119,6,0.10);
-    --bad:#dc2626;--bad-bg:rgba(220,38,38,0.10);
-    --good:#16a34a;--good-bg:rgba(22,163,74,0.10);
-    --off:#6b7e93;--off-bg:rgba(107,126,147,0.10);
-    --radius:10px;
-  }
-  body.dark{
-    --bg:#0f1419;--panel:#161d27;--panel-2:#1c2531;--line:#2a3441;
-    --text:#e7edf3;--muted:#8b9bab;--accent:#4fd1c5;--accent-soft:rgba(79,209,197,0.12);
-    --warn:#f2b84b;--warn-bg:rgba(242,184,75,0.12);
-    --bad:#f0625a;--bad-bg:rgba(240,98,90,0.12);
-    --good:#4fd17a;--good-bg:rgba(79,209,122,0.12);
-    --off:#8b9bab;--off-bg:rgba(139,155,171,0.10);
-  }
+  :root{--bg:#f0f4f8;--panel:#fff;--panel-2:#e8edf2;--line:#d1dae3;--text:#1a2332;--muted:#6b7e93;--accent:#0ea5a0;--accent-soft:rgba(14,165,160,0.10);--warn:#d97706;--warn-bg:rgba(217,119,6,0.10);--bad:#dc2626;--bad-bg:rgba(220,38,38,0.10);--good:#16a34a;--good-bg:rgba(22,163,74,0.10);--passed-bg:rgba(220,38,38,0.07);--radius:10px;}
+  body.dark{--bg:#0f1419;--panel:#161d27;--panel-2:#1c2531;--line:#2a3441;--text:#e7edf3;--muted:#8b9bab;--accent:#4fd1c5;--accent-soft:rgba(79,209,197,0.12);--warn:#f2b84b;--warn-bg:rgba(242,184,75,0.12);--bad:#f0625a;--bad-bg:rgba(240,98,90,0.12);--good:#4fd17a;--good-bg:rgba(79,209,122,0.12);--passed-bg:rgba(240,98,90,0.08);}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Segoe UI',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;}
 
@@ -34,61 +19,67 @@
   .login-box input:focus{border-color:var(--accent);}
   .sign-in-btn{background:var(--accent);color:#fff;border:none;padding:10px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
   #loginError{color:var(--bad);font-size:12px;min-height:14px;}
+  .theme-btn{background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--muted);}
 
-  /* Layout */
-  header{padding:16px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  /* Header */
+  header{padding:16px 28px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;}
   header h1{font-size:18px;font-weight:700;}
-  header .sub{color:var(--muted);font-size:12px;margin-top:2px;}
+  header .sub{color:var(--muted);font-size:11px;margin-top:2px;}
   .right-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .pill{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);}
   .pill.live{color:var(--good);}
-  .pill.err{color:var(--bad);}
   .icon-btn{background:none;border:1px solid var(--line);color:var(--muted);padding:4px 10px;border-radius:8px;font-size:12px;cursor:pointer;}
-  .icon-btn:hover{color:var(--text);}
-  .theme-btn{background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--muted);}
+  .alarm-test-btn{background:var(--bad-bg);color:var(--bad);border:1px solid rgba(220,38,38,0.35);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;}
 
   /* Day bar */
-  .day-bar{padding:14px 28px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .day-bar{padding:12px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
   .day-bar .today{font-size:15px;font-weight:700;}
-  .day-bar .date-sub{font-size:12px;color:var(--muted);margin-top:2px;}
-  .summary-pills{display:flex;gap:10px;flex-wrap:wrap;}
-  .sum-pill{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel);}
+  .day-bar .date-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .summary-pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .sum-pill{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--line);background:var(--panel);}
   .sum-pill.on{color:var(--good);border-color:rgba(22,163,74,0.3);background:var(--good-bg);}
-  .sum-pill.off{color:var(--off);border-color:rgba(107,126,147,0.3);background:var(--off-bg);}
+  .sum-pill.off{color:var(--muted);}
   .sum-pill.alert{color:var(--bad);border-color:rgba(220,38,38,0.3);background:var(--bad-bg);}
   .sum-pill.warn{color:var(--warn);border-color:rgba(217,119,6,0.3);background:var(--warn-bg);}
+  #worldClocks{font-size:11px;color:var(--muted);}
 
   /* Tabs */
-  .tabs{display:flex;gap:0;padding:0 28px;border-bottom:1px solid var(--line);}
-  .tab{padding:12px 18px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);}
+  .tabs{display:flex;padding:0 28px;border-bottom:1px solid var(--line);}
+  .tab{padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);}
   .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
   /* Controls */
   .controls{display:flex;gap:10px;padding:14px 28px;flex-wrap:wrap;align-items:center;}
-  .controls input,.controls select{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;outline:none;min-width:160px;}
-  .controls input{flex:1;}
-  .controls input:focus,.controls select:focus{border-color:var(--accent);}
+  .controls input,.controls select{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;outline:none;}
+  .controls input{flex:1;min-width:180px;}
   .add-btn{background:var(--accent-soft);color:var(--accent);border:1px solid rgba(14,165,160,0.35);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;white-space:nowrap;}
 
   /* Grid */
-  .grid{display:flex;flex-direction:row;gap:16px;padding:16px 28px 40px;align-items:flex-start;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:0 28px 40px;}
 
   /* Member card */
   .member-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  @keyframes flashCard{0%,100%{box-shadow:none;}50%{box-shadow:0 0 18px 4px rgba(220,38,38,0.5);}}
+  .member-card.has-alert{animation:flashCard 1.2s ease-in-out infinite;}
   .card-header{padding:14px 16px;display:flex;justify-content:space-between;align-items:flex-start;}
   .card-header .name{font-size:15px;font-weight:700;}
   .card-header .role{font-size:11px;color:var(--muted);margin-top:2px;}
   .shift-chip{font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;font-weight:600;}
   .shift-chip.on-shift{background:var(--good-bg);color:var(--good);border:1px solid rgba(22,163,74,0.3);}
-  .shift-chip.off-today{background:var(--off-bg);color:var(--off);border:1px solid rgba(107,126,147,0.3);}
+  .shift-chip.off-today{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);}
+  .shift-chip.absent{background:var(--bad-bg);color:var(--bad);border:1px solid rgba(220,38,38,0.3);cursor:pointer;}
 
-  /* Supplier cut-off section */
+  /* Card sections */
   .card-section{padding:0 16px 14px;}
   .section-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-top:12px;border-top:1px solid var(--line);}
+
+  /* Supplier rows */
   .supplier-row{display:flex;align-items:center;justify-content:space-between;border-radius:8px;padding:8px 12px;margin-bottom:6px;border:1px solid var(--line);background:var(--panel-2);}
   .supplier-row.ok{border-color:rgba(22,163,74,0.4);background:var(--good-bg);}
   .supplier-row.warn{border-color:rgba(217,119,6,0.5);background:var(--warn-bg);}
-  .supplier-row.bad{border-color:rgba(220,38,38,0.5);background:var(--bad-bg);}
+  @keyframes flashAlert{0%,100%{opacity:1;}50%{opacity:0.35;}}
+  .supplier-row.bad{border-color:rgba(220,38,38,0.5);background:var(--bad-bg);animation:flashAlert 1.2s ease-in-out infinite;}
+  .supplier-row.passed{border-color:rgba(220,38,38,0.3);background:var(--passed-bg);opacity:0.75;}
   .sup-name{font-size:13px;font-weight:600;}
   .cutoff-row{display:flex;align-items:center;gap:5px;margin-top:3px;}
   .cutoff-label{font-size:10px;color:var(--muted);}
@@ -101,14 +92,20 @@
   .time-left.warn{color:var(--warn);}
   .time-left.bad{color:var(--bad);}
 
-  /* Task breakdown */
+  /* Reports */
+  .report-row{display:flex;justify-content:space-between;padding:5px 8px;background:var(--panel-2);border-radius:6px;margin-bottom:4px;border:1px solid var(--line);}
+  .report-name{font-size:12px;font-weight:600;}
+  .report-time{font-size:10px;color:var(--muted);}
+  .report-status{font-size:11px;font-weight:600;}
+
+  /* Tasks */
   .task-list{display:flex;flex-direction:column;gap:4px;}
   .task-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:var(--panel-2);}
   .task-row.is-break{opacity:0.5;}
   .task-time{font-size:10px;color:var(--muted);white-space:nowrap;min-width:90px;}
   .task-name{font-size:12px;font-weight:500;}
 
-  /* Weekly roster */
+  /* Week grid */
   .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
   .day-cell{padding:6px 4px;border-radius:6px;text-align:center;background:var(--panel-2);}
   .day-cell .day-name{font-size:9px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
@@ -117,34 +114,13 @@
   .day-cell.is-today{border:1px solid var(--accent);}
   .day-cell.is-today .day-name{color:var(--accent);}
 
-  /* Card edit footer */
+  /* Card edit */
   .card-edit{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;}
   .card-edit input{flex:1;min-width:70px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:5px 8px;border-radius:6px;font-size:11px;outline:none;}
-  .card-edit input:focus{border-color:var(--accent);}
   .save-btn{font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid rgba(22,163,74,0.4);background:var(--good-bg);color:var(--good);font-weight:600;}
   .del-btn{font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);}
 
-  /* Off members mini list */
-  .off-grid{display:flex;flex-wrap:wrap;gap:10px;padding:16px 28px 40px;}
-  .off-chip{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;}
-  .off-chip .off-name{font-size:14px;font-weight:600;}
-  .off-chip .off-shift{font-size:11px;color:var(--muted);}
-  .off-badge{background:var(--off-bg);color:var(--off);border:1px solid rgba(107,126,147,0.3);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
-
-
-  @keyframes flashAlert{0%,100%{opacity:1;}50%{opacity:0.3;}}
-  @keyframes flashCard{0%,100%{box-shadow:none;}50%{box-shadow:0 0 18px 4px rgba(220,38,38,0.5);}}
-  .supplier-row.bad{ animation:flashAlert 1.2s ease-in-out infinite; border-color:rgba(220,38,38,0.5);background:var(--bad-bg); }
-  .supplier-row.passed{ border-color:rgba(220,38,38,0.3);background:var(--bad-bg); opacity:0.7; }
-  .supplier-row.no-alarm{ opacity:0.6; border-style:dashed; }
-  .member-card.has-alert{ animation:flashCard 1.2s ease-in-out infinite; }
-  .team-section{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;}
-  .team-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-radius:8px;background:var(--panel);border:1px solid var(--line);}
-  .team-name{font-size:14px;font-weight:800;}
-  .team-shift-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);margin-left:8px;font-weight:600;}
-  .team-count{font-size:11px;color:var(--muted);}
-  .inner-grid{display:flex;flex-direction:column;gap:12px;}
-  .empty-state{padding:60px 28px;text-align:center;color:var(--muted);grid-column:1/-1;}
+  .empty-state{padding:60px 28px;text-align:center;color:var(--muted);}
   footer{padding:12px 28px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
   #app{display:none;}
 </style>
@@ -170,9 +146,8 @@
       <div class="sub">Shift monitoring · Cut-off alerts · Schedule</div>
     </div>
     <div class="right-controls">
-      <span id="notifStatus" onclick="requestNotifPermission()" style="font-size:11px;color:var(--muted);cursor:pointer;">🔕 Click to enable alerts</span>
-      <span id="alarmStatus" style="font-size:11px;color:var(--muted);cursor:pointer;" onclick="testAlarm()">🔕 Click to enable alarm</span>
-      <button onclick="testAlarm()" style="background:var(--bad-bg);color:var(--bad);border:1px solid rgba(220,38,38,0.35);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;">🔔 Test Alarm</button>
+      <span id="notifStatus" style="font-size:11px;color:var(--muted);">🔕 Click to enable alarm</span>
+      <button class="alarm-test-btn" onclick="testAlarm()">🔔 Test Alarm</button>
       <button class="theme-btn" id="themeToggleApp">🌙 Dark mode</button>
       <span id="statusPill" class="pill">Connecting…</span>
       <button class="icon-btn" id="logoutBtn">Sign out</button>
@@ -184,9 +159,9 @@
       <div class="today" id="todayLabel"></div>
       <div class="date-sub" id="dateLabel"></div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
       <div class="summary-pills" id="summaryPills"></div>
-      <div id="worldClocks" style="font-size:11px;color:var(--muted);text-align:right;"></div>
+      <div id="worldClocks"></div>
     </div>
   </div>
 
@@ -203,256 +178,124 @@
   </div>
 
   <div class="grid" id="grid"></div>
-  <footer>🟢 Safe &nbsp;·&nbsp; 🟡 Within 1 hour &nbsp;·&nbsp; 🔴 Within 30 mins — time to ping! &nbsp;·&nbsp; Auto-updates every minute.</footer>
+  <footer>🟢 Safe · 🟡 Within 1 hour · 🔴 Within 30 mins — time to ping! · Auto-updates every minute.</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-const SUPABASE_URL = "https://prxqfgdebbhwiaxpauax.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByeHFmZ2RlYmJod2lheHBhdWF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NDMwODcsImV4cCI6MjA5ODQxOTA4N30.5GaaGQJdXwE6U1_tGwxtCC-1uf6RgOoil9Ql7Ml0sPA";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let members=[], orders=[], currentTab='today';
+const SUPABASE_URL="https://prxqfgdebbhwiaxpauax.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByeHFmZ2RlYmJod2lheHBhdWF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NDMwODcsImV4cCI6MjA5ODQxOTA4N30.5GaaGQJdXwE6U1_tGwxtCC-1uf6RgOoil9Ql7Ml0sPA";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+let members=[],orders=[],currentTab='today';
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-// Suppliers with automatic day-based cut-off times
-const SPECIAL_CUTOFFS = {
-  'Dales':    { Mon:'03:00', Tue:'02:00', Wed:'',     Thu:'02:00', Fri:'',     Sat:'',     Sun:'' },
-  'Farmford': { Mon:'08:00', Tue:'08:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'09:00', Sun:'' },
-  'Adams':    { Mon:'08:30', Tue:'08:30', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'09:00', Sun:'' },
-};
-
-// Default start times for suppliers (same every day) — editable in dashboard
-const DEFAULT_START_TIMES = {
-  'Fruitique':          '21:00',
-  'Gamekeepers':        '20:00',
-  'Game Keepers':       '20:00',
-  'Oceanmade':          '17:00',
-  'Ocean Made':         '17:00',
-  'Coastal Fresh':      '15:00',
-  'Fussy Fruit':        '19:30',
-  'Tim and Terry':      '02:00',
-  'Tim & Terry':        '02:00',
-  'MyButcher':          '10:30',
-  'Mybutcher':          '10:30',
-  'My Butcher':         '10:30',
-  'LJ':                 '18:00',
-  'L.J Parthenos':      '18:00',
-  'LJ Parthenos':       '18:00',
-  'Diamond':            '22:30',
-  'Diamond Foodservice':'22:30',
-  'Bodiam':             '03:00',
-  'Hillheads':          '08:00',
-  'Greenpoint':         '11:00',
-  'MCB':                '07:00',
-  'Heritage':           '05:00',
-  'Farmford':           '04:00',
-  'Farm Food':          '04:00',
-  'Clover':             '06:00',
-  'Cloverfresh':        '06:00',
-  'Adams':              '01:30',
-  'Adams Wholesale UK': '01:30',
-};
-
-// Robust lookup for default start times — handles case and spacing variations
-function getDefaultStart(sup){
-  if(!sup) return '';
-  const s = sup.trim();
-  // 1. Exact match
-  if(DEFAULT_START_TIMES[s]) return DEFAULT_START_TIMES[s];
-  // 2. Case-insensitive match
-  const lc = s.toLowerCase();
-  for(const [k,v] of Object.entries(DEFAULT_START_TIMES)){
-    if(k.toLowerCase() === lc) return v;
-  }
-  // 3. Partial match — DB name starts with key or vice versa
-  for(const [k,v] of Object.entries(DEFAULT_START_TIMES)){
-    if(lc.startsWith(k.toLowerCase()) || k.toLowerCase().startsWith(lc)) return v;
-  }
-  return '';
-}
-
-// Suppliers with automatic day-based START times (array = multiple shifts that day)
-const SPECIAL_STARTS = {
-  'Fisher and Woods': { Mon:'',               Tue:'05:00', Wed:'05:00', Thu:'04:00', Fri:'04:00', Sat:'04:00', Sun:'' },
-  'Fisher & Woods':   { Mon:'',               Tue:'05:00', Wed:'05:00', Thu:'04:00', Fri:'04:00', Sat:'04:00', Sun:'' },
-  'Henderson OE':     { Mon:'16:00',          Tue:'16:00', Wed:'',      Thu:'16:00', Fri:'18:00', Sat:'',      Sun:'' },
-  'Hendersons OE':    { Mon:'16:00',          Tue:'16:00', Wed:'',      Thu:'16:00', Fri:'18:00', Sat:'',      Sun:'' },
-  'Henderson INV':    { Mon:'04:30',          Tue:'04:30', Wed:'',      Thu:'04:30', Fri:'03:00', Sat:'',      Sun:'' },
-  'Henderson Inv':    { Mon:'04:30',          Tue:'04:30', Wed:'',      Thu:'04:30', Fri:'03:00', Sat:'',      Sun:'' },
-  'Dales':            { Mon:['01:00','20:00'],Tue:'',      Wed:'20:00', Thu:'',      Fri:'',      Sat:'',      Sun:'' },
-  'Tassie FineFood':  { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
-  'Tassie FineFoods': { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
-  'Tassie Finefoods': { Mon:'09:00',          Tue:'09:00', Wed:'09:00', Thu:'09:00', Fri:'09:00', Sat:'',      Sun:'14:00' },
-};
-
-/* ======= SUPPLIER DAY ASSIGNMENTS =======
-   Defines which days each member handles specific suppliers.
-   Suppliers NOT listed here → alarm every day as normal.
-   Suppliers listed here → show always, alarm only on assigned days. */
-const SUPPLIER_DAYS = {
-  'Eden':      { 'Hillheads':        ['Mon'] },
-  'Renilyn':   { 'Hillheads':        ['Tue','Wed','Thu','Fri','Sat'],
-                 'MyButcher':        ['Tue','Wed','Thu','Fri'],
-                 'Mybutcher':        ['Tue','Wed','Thu','Fri'],
-                 'Fisher and Woods': ['Tue','Wed','Thu','Fri','Sat'],
-                 'Fisher & Woods':   ['Tue','Wed','Thu','Fri','Sat'] },
-  'Ellen':     { 'MyButcher':        ['Mon'],
-                 'Mybutcher':        ['Mon'] },
-  'Marie':     { 'Dales':            ['Mon'] },
-  'Jade':      { 'Dales':            ['Mon'] },
-  'Nisa':      { 'MCB':              ['Mon'],
-                 'Oceanmade':        ['Fri'] },
-  'Anelie':    { 'MCB':              ['Tue','Wed','Thu','Fri','Sat'] },
-  'Rosemarie': { 'Fruitique':        ['Wed'] },
-  'Trixy':     { 'Farmford':         ['Sat'],
-                 'Clover':           ['Sat'],
-                 'Cloverfresh':      ['Sat'] },
-  'Ailene':    { 'Oceanmade':        ['Mon','Tue','Wed','Thu','Sun'] },
-};
-
-function isAlarmDay(memberName, supplier, dayName){
-  const memberDays = SUPPLIER_DAYS[memberName];
-  if(!memberDays) return true; // no restriction = always alarm
-  // Check exact and case-insensitive match
-  const sup = supplier.trim();
-  for(const [k,days] of Object.entries(memberDays)){
-    if(k.toLowerCase() === sup.toLowerCase()) return days.includes(dayName);
-  }
-  return true; // supplier not in list = always alarm
-}
-
-/* ======= TEAM GROUPINGS ======= */
-const TEAMS = [
-  { manager:'Krista', label:"Krista's Team", shift:'UK Shift', color:'#4fd1c5', members:['Krista','Ellen','Eden','Trixy','Renilyn'] },
-  { manager:'Marie',  label:"Marie's Team",  shift:'US Shift', color:'#818cf8', members:['Marie','Rosemarie','Hazel'] },
-  { manager:'Ailene', label:"Ailene's Team", shift:'AU Shift', color:'#f2b84b', members:['Ailene','Anelie','Vanessa','Nisa','Jade'] },
-];
-const ALL_TEAM_MEMBERS = new Set(TEAMS.flatMap(t=>t.members));
-
-/* ======= SCHEDULE DATA (from roster) ======= */
-const ROSTER = {
-  'Krista':    { role:'Shift Manager', schedule:{ Mon:'1:00am-10:00am', Tue:'1:00am-10:00am', Wed:'OFF', Thu:'1:00am-10:00am', Fri:'1:00am-10:00am', Sat:'1:00am-10:00am', Sun:'OFF' } },
-  'Ellen':     { role:'', schedule:{ Mon:'3:00am-12:00pm', Tue:'OFF', Wed:'3:00am-12:00pm', Thu:'3:00am-12:00pm', Fri:'3:00am-12:00pm', Sat:'1:00am-10:00am', Sun:'OFF' } },
-  'Trixy':     { role:'', schedule:{ Mon:'OFF', Tue:'3:00am-12:00pm', Wed:'1:00am-10:00am', Thu:'5:00am-2:00pm', Fri:'5:00am-2:00pm', Sat:'3:00am-12:00pm', Sun:'OFF' } },
-  'Eden':      { role:'', schedule:{ Mon:'8:00am-5:00pm', Tue:'4:00am-1:00pm', Wed:'4:00am-1:00pm', Thu:'4:00am-1:00pm', Fri:'4:00am-1:00pm', Sat:'OFF', Sun:'OFF' } },
-  'Renilyn':   { role:'', schedule:{ Mon:'OFF', Tue:'5:00am-1:00pm', Wed:'5:00am-1:00pm', Thu:'4:00am-1:00pm', Fri:'4:00am-1:00pm', Sat:'1:00am-10:00am', Sun:'OFF' } },
-  'Anelie':    { role:'', schedule:{ Mon:'OFF', Tue:'6:30am-3:30pm', Wed:'6:30am-3:30pm', Thu:'6:30am-3:30pm', Fri:'6:30am-3:30pm', Sat:'6:30am-3:30pm', Sun:'OFF' } },
-  'Jade':      { role:'', schedule:{ Mon:'3:00pm-12:00am', Tue:'3:00pm-12:00am', Wed:'2:00pm-11:00pm', Thu:'3:00pm-12:00am', Fri:'OFF', Sat:'OFF', Sun:'2:00pm-11:00pm' } },
-  'Vanessa':   { role:'', schedule:{ Mon:'2:00pm-11:00pm', Tue:'2:00pm-11:00pm', Wed:'2:00pm-11:00pm', Thu:'OFF', Fri:'2:00pm-11:00pm', Sat:'2:00pm-11:00pm', Sun:'OFF' } },
-  'Hazel':     { role:'', schedule:{ Mon:'4:00pm-1:00am', Tue:'4:00pm-1:00am', Wed:'OFF', Thu:'4:00pm-1:00am', Fri:'4:00pm-1:00am', Sat:'OFF', Sun:'4:00pm-1:00am' } },
-  'Marie':     { role:'Shift Manager', schedule:{ Mon:'5:00pm-3:00am', Tue:'5:00pm-2:00am', Wed:'5:00pm-2:00am', Thu:'5:00pm-2:00am', Fri:'OFF', Sat:'OFF', Sun:'5:00pm-2:00am' } },
-  'Rosemarie': { role:'', schedule:{ Mon:'10:30pm-7:30am', Tue:'10:30pm-7:30am', Wed:'10:30pm-7:30am', Thu:'10:30pm-7:30am', Fri:'9:00pm-6:00am', Sat:'OFF', Sun:'OFF' } },
-  'Nisa':      { role:'', schedule:{ Mon:'1:00am-10:00am', Tue:'8:00pm-5:00am', Wed:'8:00pm-5:00am', Thu:'2:00pm-11:00pm', Fri:'5:00pm-2:00am', Sat:'OFF', Sun:'OFF' } },
-  'Ailene':    { role:'Shift Manager', schedule:{ Mon:'5:00pm-2:00am', Tue:'5:00pm-2:00am', Wed:'5:00pm-2:00am', Thu:'5:00pm-2:00am', Fri:'OFF', Sat:'OFF', Sun:'5:00pm-2:00am' } },
-};
-
-const TASKS = {
-  'Krista': {
-    Mon: [{t:'1:00-5:30',s:'Adams'},{t:'5:30-6:30',s:'Break',b:true},{t:'6:30-9:00',s:'Heritage / Bodiam'},{t:'9:00-10:00',s:'Heritage'}],
-    Tue: [{t:'1:00-5:30',s:'Adams'},{t:'5:30-6:30',s:'Break',b:true},{t:'6:30-9:00',s:'Heritage / Bodiam'},{t:'9:00-10:00',s:'Heritage'}],
-    Thu: [{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}],
-    Fri: [{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}],
-    Sat: [{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}],
-  },
-  'Ellen': {
-    Mon: [{t:'3:00-5:30',s:'Bodiam'},{t:'5:30-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:30-11:30',s:'Mybutcher'},{t:'11:30-12:00',s:'Tassie'}],
-    Wed: [{t:'3:00-5:00',s:'Adams'},{t:'5:00-9:00',s:'Heritage'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],
-    Thu: [{t:'3:00-5:30',s:'Bodiam'},{t:'5:30-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],
-    Fri: [{t:'3:00-4:30',s:'Bodiam'},{t:'4:30-9:30',s:'Adams'},{t:'9:30-10:30',s:'Break',b:true},{t:'10:30-12:00',s:'Tassie'}],
-    Sat: [{t:'1:00-1:30',s:'Bodiam'},{t:'1:30-3:00',s:'Adams'},{t:'3:00-5:00',s:'Bodiam'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-9:30',s:'Adams'},{t:'9:30-10:00',s:'Heritage'}],
-  },
-  'Trixy': {
-    Tue: [{t:'3:00-5:00',s:'Bodiam'},{t:'5:00-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],
-    Wed: [{t:'1:00-6:00',s:'Adams / Bodiam'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-10:00',s:'Hillheads / Heritage'}],
-    Thu: [{t:'5:00-10:30',s:'Hillheads / Heritage'},{t:'10:30-11:30',s:'Mybutcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-2:00',s:'Tassie'}],
-    Fri: [{t:'5:00-10:30',s:'Hillheads / Heritage'},{t:'10:30-11:30',s:'Mybutcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-2:00',s:'Tassie'}],
-    Sat: [{t:'2:00-4:00',s:'Heritage'},{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Heritage'},{t:'10:00-11:00',s:'Break / Clover',b:true}],
-  },
-  'Eden': {
-    Mon: [{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:00',s:'Clover'},{t:'10:00-11:00',s:'Tassie'},{t:'11:00-3:00',s:'Greenpoint'},{t:'3:00-4:00',s:'Break',b:true},{t:'4:00-5:00',s:'Tassie'}],
-    Tue: [{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}],
-    Wed: [{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}],
-    Thu: [{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}],
-    Fri: [{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}],
-  },
-  'Renilyn': {
-    Tue: [{t:'5:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],
-    Wed: [{t:'5:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],
-    Thu: [{t:'4:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],
-    Fri: [{t:'4:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],
-    Sat: [{t:'1:00-2:00',s:'Bodiam'},{t:'2:00-4:00',s:'Tim and Terry'},{t:'4:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Break',b:true},{t:'9:00-10:00',s:'Hillheads'}],
-  },
-  'Anelie': {
-    Tue: [{t:'6:30-7:00',s:'Bodiam'},{t:'7:00-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'2:00-3:00',s:'Tassie'},{t:'3:00-3:30',s:'Tassie'}],
-    Wed: [{t:'6:30-7:00',s:'Bodiam'},{t:'7:00-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'1:00-3:00',s:'Tassie'},{t:'3:00-3:30',s:'Tassie'}],
-    Thu: [{t:'6:30-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'12:00-3:00',s:'Tassie'},{t:'3:00-3:30',s:'Tassie'}],
-    Fri: [{t:'6:30-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'1:00-2:00',s:'Tassie'},{t:'3:00-3:30',s:'Tassie'}],
-    Sat: [{t:'6:30-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'3:00-3:30',s:'Tassie'}],
-  },
-  'Jade': {
-    Mon: [{t:'3:00-5:00',s:'Tassie'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie'},{t:'10:00-12:00',s:'Butcher / Coastal / Fussy'}],
-    Tue: [{t:'3:00-5:00',s:'Tassie'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie'},{t:'10:00-12:00',s:'Butcher / Coastal / Fussy'}],
-    Wed: [{t:'2:00-5:00',s:'Tassie / Coastal'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie / Coastal / Fussy'},{t:'10:00-11:00',s:'Butcher / Fussy'}],
-    Thu: [{t:'3:00-5:00',s:'Tassie'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie'},{t:'10:00-12:00',s:'Butcher / Coastal / Fussy'}],
-    Sun: [{t:'2:00-5:00',s:'Tassie / Coastal'},{t:'4:00-5:00',s:'LJ / Coastal / Fussy'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie / Coastal / LJ'},{t:'10:00-11:00',s:'Mybutcher / Fussy'}],
-  },
-  'Vanessa': {
-    Mon: [{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'},{t:'7:30-10:00',s:'Fussy / Coastal / LJ'}],
-    Tue: [{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'},{t:'7:30-10:00',s:'Fussy / Coastal / LJ'}],
-    Wed: [{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'},{t:'7:30-10:00',s:'Fussy / Coastal / LJ'}],
-    Fri: [{t:'2:00-6:00',s:'Coastal / LJ / Tassie'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ / Tassie'},{t:'7:30-10:00',s:'Fussy / Coastal / LJ'}],
-    Sat: [{t:'2:00-6:00',s:'Coastal'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-12:00',s:'Coastal'},{t:'8:00-11:00',s:'LJ'}],
-  },
-  'Hazel': {
-    Mon: [{t:'4:00-8:00',s:'Henderson OE'},{t:'8:00-9:00',s:'Diamond'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Diamond'}],
-    Tue: [{t:'4:00-8:00',s:'Henderson OE'},{t:'8:00-9:00',s:'Diamond'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Diamond'}],
-    Thu: [{t:'4:00-8:00',s:'Henderson OE'},{t:'8:00-9:00',s:'Diamond'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Diamond'}],
-    Fri: [{t:'6:00-9:00',s:'Henderson OE'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Henderson OE'},{t:'00:30-1:30',s:'Break',b:true},{t:'1:30-3:00',s:'Bodiam'}],
-    Sun: [{t:'6:00-8:00',s:'LJ / Coastal'},{t:'8:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-2:30',s:'Diamond'},{t:'2:30-3:00',s:'Bodiam / Tim and Terry'}],
-  },
-  'Marie': {
-    Mon: [{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Henderson'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-10:00',s:'LJ / Dales'},{t:'10:00-1:30am',s:'LJ / Gamekeepers'}],
-    Tue: [{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Henderson'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-10:00',s:'LJ'},{t:'10:00-1:30am',s:'LJ / Gamekeepers'}],
-    Wed: [{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Gamekeepers'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-9:00',s:'Gamekeepers'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-1:30am',s:'LJ / Gamekeepers'}],
-    Thu: [{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Henderson'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-10:00',s:'LJ'},{t:'10:00-1:30am',s:'LJ / Gamekeepers'}],
-    Sun: [{t:'5:00-7:00',s:'Gamekeepers'},{t:'7:00-8:00',s:'Tassie'},{t:'8:00-9:00',s:'Break',b:true},{t:'9:00-10:00',s:'Gamekeepers'},{t:'10:00-12:00',s:'Mybutcher'},{t:'12:00-1:30am',s:'Gamekeepers'},{t:'1:30-2:00am',s:'Bodiam'}],
-  },
-  'Rosemarie': {
-    Mon: [{t:'10:00pm-1:30am',s:'LJ / Diamond'},{t:'10:00pm-12:30am',s:'Dales'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],
-    Tue: [{t:'10:00pm-1:30am',s:'LJ / Diamond'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],
-    Wed: [{t:'10:00pm-11:30pm',s:'Help with Fruitique'},{t:'11:30pm-1:30am',s:'Diamond'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],
-    Thu: [{t:'10:00pm-1:30am',s:'LJ / Diamond'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],
-    Fri: [{t:'9:00pm-11:00pm',s:'Hendersons OE'},{t:'11:00pm-12:00am',s:'Break',b:true},{t:'12:00am-3:00am',s:'Hendersons OE'},{t:'3:00-5:00',s:'Henderson INV'},{t:'5:00-6:00',s:'Bodiam'}],
-  },
-  'Nisa': {
-    Mon: [{t:'1:00-3:00',s:'Dales'},{t:'2:00-4:00',s:'Tim and Terry'},{t:'4:00-5:00',s:'Break',b:true},{t:'5:00-6:00',s:'Bodiam'},{t:'6:00-10:00',s:'MCB / Tassie'}],
-    Tue: [{t:'8:00pm-2:00am',s:'Dales'},{t:'2:00-3:00',s:'Break',b:true},{t:'3:00-5:00',s:'Bodiam'}],
-    Wed: [{t:'8:00pm-2:00am',s:'Dales'},{t:'2:00-3:00',s:'Break',b:true},{t:'3:00-5:00',s:'Bodiam'}],
-    Thu: [{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'},{t:'7:30-10:00',s:'Fussy / Coastal / LJ'}],
-    Fri: [{t:'5:00-9:00',s:'Oceanmade / Tassie'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:45',s:'Oceanmade'},{t:'11:45-12:00',s:'LJ / Coastal'},{t:'12:00-1:00',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}],
-  },
-  'Ailene': {
-    Mon: [{t:'5:00-9:00',s:'Oceanmade'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}],
-    Tue: [{t:'5:00-9:00',s:'Oceanmade'},{t:'6:00-9:00',s:'LJ'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'11:00pm-12:00am',s:'LJ'},{t:'1:00-2:00',s:'Bodiam'}],
-    Wed: [{t:'5:00-9:00',s:'Oceanmade / LJ'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'11:00pm-12:00am',s:'Coastal'},{t:'1:00-2:00',s:'Bodiam'}],
-    Thu: [{t:'5:00-9:00',s:'Oceanmade'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}],
-    Sun: [{t:'5:00-9:00',s:'Oceanmade / LJ'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'11:00pm-12:00am',s:'Coastal'},{t:'1:00-2:00',s:'Bodiam'}],
-  },
-};
-
-/* ======= THEME ======= */
-function applyTheme(dark){
-  document.body.classList.toggle('dark',dark);
-  const lbl=dark?'☀️ Light mode':'🌙 Dark mode';
-  document.getElementById('themeToggleLogin').textContent=lbl;
-  document.getElementById('themeToggleApp').textContent=lbl;
-  localStorage.setItem('theme',dark?'dark':'light');
-}
+/* ---- THEME ---- */
+function applyTheme(dark){document.body.classList.toggle('dark',dark);const l=dark?'☀️ Light mode':'🌙 Dark mode';document.getElementById('themeToggleLogin').textContent=l;document.getElementById('themeToggleApp').textContent=l;localStorage.setItem('theme',dark?'dark':'light');}
 document.getElementById('themeToggleLogin').onclick=()=>applyTheme(!document.body.classList.contains('dark'));
 document.getElementById('themeToggleApp').onclick=()=>applyTheme(!document.body.classList.contains('dark'));
 applyTheme(localStorage.getItem('theme')==='dark');
 
-/* ======= AUTH ======= */
+/* ---- AU TIME ---- */
+function nowAU(){
+  const parts=new Intl.DateTimeFormat('en',{timeZone:'Australia/Sydney',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hour12:false}).formatToParts(new Date());
+  const get=t=>parseInt(parts.find(p=>p.type===t)?.value||'0');
+  const h=get('hour');return new Date(get('year'),get('month')-1,get('day'),h===24?0:h,get('minute'),get('second'));
+}
+
+/* ---- CUT-OFF STATUS ---- */
+function getCutoffStatus(ct){
+  if(!ct)return{status:'none',label:'Set cut-off',icon:'⚪'};
+  const now=nowAU();const[h,m]=ct.split(':').map(Number);
+  const c=nowAU();c.setHours(h,m,0,0);const diff=(c-now)/60000;
+  if(diff<0)return{status:'passed',label:'Passed!',icon:'🔴'};
+  if(diff<=30)return{status:'bad',label:`${Math.round(diff)}min left`,icon:'🔴'};
+  if(diff<=60)return{status:'warn',label:`${Math.round(diff)}min left`,icon:'🟡'};
+  const hrs=Math.floor(diff/60),mins=Math.round(diff%60);
+  return{status:'ok',label:hrs>0?`${hrs}h ${mins}m left`:`${Math.round(diff)}min left`,icon:'🟢'};
+}
+
+/* ---- SPECIAL CUT-OFFS ---- */
+const SPECIAL_CUTOFFS={
+  'Dales':    {Mon:'03:00',Tue:'02:00',Wed:'',Thu:'02:00',Fri:'',Sat:'',Sun:''},
+  'Farmford': {Mon:'08:00',Tue:'08:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'09:00',Sun:''},
+  'Adams':    {Mon:'08:30',Tue:'08:30',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'09:00',Sun:''},
+};
+
+/* ---- REPORTS ---- */
+const REPORTS={
+  'Heritage':{'Krista':{Mon:['23:00','00:00'],Tue:['23:00','00:00']},'Trixy':{Wed:['23:00','00:00'],Thu:['23:00','00:00']},'Ellen':{Fri:['23:00','00:00'],Sat:['23:00','00:00']}},
+  'Farmford':{'Eden':{Mon:['20:00','23:00'],Tue:['20:00','23:00'],Wed:['20:00','23:00'],Thu:['20:00','23:00'],Fri:['20:00','23:00']},'Trixy':{Sat:['20:00','23:00']}},
+  'Fisher and Woods':{'Renilyn':{Tue:['05:00','06:00','08:00','09:00'],Wed:['05:00','06:00','08:00','09:00'],Thu:['04:00','06:00','08:00','09:00'],Fri:['04:00','06:00','08:00','09:00'],Sat:['04:00','06:00','08:00','09:00']}},
+};
+
+/* ---- ROSTER ---- */
+const ROSTER={
+  'Krista':    {role:'Shift Manager',schedule:{Mon:'1:00am-10:00am',Tue:'1:00am-10:00am',Wed:'OFF',Thu:'1:00am-10:00am',Fri:'1:00am-10:00am',Sat:'1:00am-10:00am',Sun:'OFF'}},
+  'Ellen':     {role:'',schedule:{Mon:'3:00am-12:00pm',Tue:'OFF',Wed:'3:00am-12:00pm',Thu:'3:00am-12:00pm',Fri:'3:00am-12:00pm',Sat:'1:00am-10:00am',Sun:'OFF'}},
+  'Trixy':     {role:'',schedule:{Mon:'OFF',Tue:'3:00am-12:00pm',Wed:'1:00am-10:00am',Thu:'5:00am-2:00pm',Fri:'5:00am-2:00pm',Sat:'3:00am-12:00pm',Sun:'OFF'}},
+  'Eden':      {role:'',schedule:{Mon:'8:00am-5:00pm',Tue:'4:00am-1:00pm',Wed:'4:00am-1:00pm',Thu:'4:00am-1:00pm',Fri:'4:00am-1:00pm',Sat:'OFF',Sun:'OFF'}},
+  'Renilyn':   {role:'',schedule:{Mon:'OFF',Tue:'5:00am-1:00pm',Wed:'5:00am-1:00pm',Thu:'4:00am-1:00pm',Fri:'4:00am-1:00pm',Sat:'1:00am-10:00am',Sun:'OFF'}},
+  'Anelie':    {role:'',schedule:{Mon:'OFF',Tue:'6:30am-3:30pm',Wed:'6:30am-3:30pm',Thu:'6:30am-3:30pm',Fri:'6:30am-3:30pm',Sat:'6:30am-3:30pm',Sun:'OFF'}},
+  'Jade':      {role:'',schedule:{Mon:'3:00pm-12:00am',Tue:'3:00pm-12:00am',Wed:'2:00pm-11:00pm',Thu:'3:00pm-12:00am',Fri:'OFF',Sat:'OFF',Sun:'2:00pm-11:00pm'}},
+  'Vanessa':   {role:'',schedule:{Mon:'2:00pm-11:00pm',Tue:'2:00pm-11:00pm',Wed:'2:00pm-11:00pm',Thu:'OFF',Fri:'2:00pm-11:00pm',Sat:'2:00pm-11:00pm',Sun:'OFF'}},
+  'Hazel':     {role:'',schedule:{Mon:'4:00pm-1:00am',Tue:'4:00pm-1:00am',Wed:'OFF',Thu:'4:00pm-1:00am',Fri:'4:00pm-1:00am',Sat:'OFF',Sun:'4:00pm-1:00am'}},
+  'Marie':     {role:'Shift Manager',schedule:{Mon:'5:00pm-3:00am',Tue:'5:00pm-2:00am',Wed:'5:00pm-2:00am',Thu:'5:00pm-2:00am',Fri:'OFF',Sat:'OFF',Sun:'5:00pm-2:00am'}},
+  'Rosemarie': {role:'',schedule:{Mon:'10:30pm-7:30am',Tue:'10:30pm-7:30am',Wed:'10:30pm-7:30am',Thu:'10:30pm-7:30am',Fri:'9:00pm-6:00am',Sat:'OFF',Sun:'OFF'}},
+  'Nisa':      {role:'',schedule:{Mon:'1:00am-10:00am',Tue:'8:00pm-5:00am',Wed:'8:00pm-5:00am',Thu:'2:00pm-11:00pm',Fri:'5:00pm-2:00am',Sat:'OFF',Sun:'OFF'}},
+  'Ailene':    {role:'Shift Manager',schedule:{Mon:'5:00pm-2:00am',Tue:'5:00pm-2:00am',Wed:'5:00pm-2:00am',Thu:'5:00pm-2:00am',Fri:'OFF',Sat:'OFF',Sun:'5:00pm-2:00am'}},
+};
+function getRoster(name){if(!name)return null;const n=name.trim();if(ROSTER[n])return ROSTER[n];const lc=n.toLowerCase();for(const[k,v]of Object.entries(ROSTER))if(k.toLowerCase()===lc)return v;return null;}
+
+const TASKS={
+  'Krista':{Mon:[{t:'1:00-5:30',s:'Adams'},{t:'5:30-6:30',s:'Break',b:true},{t:'6:30-9:00',s:'Heritage / Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Tue:[{t:'1:00-5:30',s:'Adams'},{t:'5:30-6:30',s:'Break',b:true},{t:'6:30-9:00',s:'Heritage / Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Thu:[{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Fri:[{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Sat:[{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}]},
+  'Ellen':{Mon:[{t:'3:00-5:30',s:'Bodiam'},{t:'5:30-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:30-11:30',s:'Mybutcher'},{t:'11:30-12:00',s:'Tassie'}],Wed:[{t:'3:00-5:00',s:'Adams'},{t:'5:00-9:00',s:'Heritage'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],Thu:[{t:'3:00-5:30',s:'Bodiam'},{t:'5:30-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],Fri:[{t:'3:00-4:30',s:'Bodiam'},{t:'4:30-9:30',s:'Adams'},{t:'9:30-10:30',s:'Break',b:true},{t:'10:30-12:00',s:'Tassie'}],Sat:[{t:'1:00-3:00',s:'Bodiam'},{t:'3:00-5:00',s:'Adams'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-9:30',s:'Adams'},{t:'9:30-10:00',s:'Heritage'}]},
+  'Trixy':{Tue:[{t:'3:00-5:00',s:'Bodiam'},{t:'5:00-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],Wed:[{t:'1:00-6:00',s:'Adams / Bodiam'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-10:00',s:'Hillheads / Heritage'}],Thu:[{t:'5:00-10:30',s:'Hillheads / Heritage'},{t:'10:30-11:30',s:'Mybutcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-2:00',s:'Tassie'}],Fri:[{t:'5:00-10:30',s:'Hillheads / Heritage'},{t:'10:30-11:30',s:'Mybutcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-2:00',s:'Tassie'}],Sat:[{t:'2:00-4:00',s:'Heritage'},{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Heritage'},{t:'10:00-11:00',s:'Break / Clover',b:true}]},
+  'Eden':{Mon:[{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:00',s:'Clover'},{t:'10:00-11:00',s:'Tassie'},{t:'11:00-3:00',s:'Greenpoint'},{t:'3:00-4:00',s:'Break',b:true},{t:'4:00-5:00',s:'Tassie'}],Tue:[{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}],Wed:[{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}],Thu:[{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}],Fri:[{t:'4:00-9:00',s:'Farmford'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:00',s:'Clover'},{t:'11:00-1:00',s:'Greenpoint'}]},
+  'Renilyn':{Tue:[{t:'5:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],Wed:[{t:'5:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],Thu:[{t:'4:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],Fri:[{t:'4:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Hillheads'},{t:'9:00-10:30',s:'Tassie'},{t:'10:30-11:30',s:'MyButcher'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Tassie'}],Sat:[{t:'1:00-2:00',s:'Bodiam'},{t:'2:00-4:00',s:'Tim and Terry'},{t:'4:00-10:00',s:'Fisher and Woods'},{t:'8:00-9:00',s:'Break',b:true},{t:'9:00-10:00',s:'Hillheads'}]},
+  'Anelie':{Tue:[{t:'6:30-7:00',s:'Bodiam'},{t:'7:00-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'2:00-3:30',s:'Tassie'}],Wed:[{t:'6:30-7:00',s:'Bodiam'},{t:'7:00-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'1:00-3:30',s:'Tassie'}],Thu:[{t:'6:30-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'12:00-3:30',s:'Tassie'}],Fri:[{t:'6:30-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:00',s:'Greenpoint OE'},{t:'1:00-3:30',s:'Tassie'}],Sat:[{t:'6:30-10:00',s:'MCB OE / Tassie'},{t:'10:00-11:00',s:'Break',b:true},{t:'11:00-3:30',s:'Greenpoint OE'}]},
+  'Jade':{Mon:[{t:'3:00-5:00',s:'Tassie'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie'},{t:'10:00-12:00',s:'Butcher / Coastal / Fussy'}],Tue:[{t:'3:00-5:00',s:'Tassie'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie'},{t:'10:00-12:00',s:'Butcher / Coastal / Fussy'}],Wed:[{t:'2:00-5:00',s:'Tassie / Coastal'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie / Coastal / Fussy'},{t:'10:00-11:00',s:'Butcher / Fussy'}],Thu:[{t:'3:00-5:00',s:'Tassie'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie'},{t:'10:00-12:00',s:'Butcher / Coastal / Fussy'}],Sun:[{t:'2:00-5:00',s:'Tassie / Coastal'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-10:00',s:'Tassie / Coastal / LJ'},{t:'10:00-11:00',s:'Mybutcher / Fussy'}]},
+  'Vanessa':{Mon:[{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'}],Tue:[{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'}],Wed:[{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'}],Fri:[{t:'2:00-6:00',s:'Coastal / LJ / Tassie'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ / Tassie'}],Sat:[{t:'2:00-6:00',s:'Coastal'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-12:00',s:'Coastal / LJ'}]},
+  'Hazel':{Mon:[{t:'4:00-8:00',s:'Henderson OE'},{t:'8:00-9:00',s:'Diamond'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Diamond'}],Tue:[{t:'4:00-8:00',s:'Henderson OE'},{t:'8:00-9:00',s:'Diamond'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Diamond'}],Thu:[{t:'4:00-8:00',s:'Henderson OE'},{t:'8:00-9:00',s:'Diamond'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-1:00',s:'Diamond'}],Fri:[{t:'6:00-9:00',s:'Henderson OE'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Henderson OE'},{t:'12:30-1:30',s:'Break',b:true},{t:'1:30-3:00',s:'Bodiam'}],Sun:[{t:'6:00-8:00',s:'LJ / Coastal'},{t:'8:00-11:30',s:'Fruitique'},{t:'11:30-12:30',s:'Break',b:true},{t:'12:30-2:30',s:'Diamond'},{t:'2:30-3:00',s:'Bodiam / Tim and Terry'}]},
+  'Marie':{Mon:[{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Henderson'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-10:00',s:'LJ / Dales'},{t:'10:00-1:30am',s:'LJ / Gamekeepers'}],Tue:[{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Henderson'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-10:00',s:'LJ'},{t:'10:00-1:30am',s:'LJ / Gamekeepers'}],Wed:[{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Gamekeepers'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-9:00',s:'Gamekeepers'},{t:'9:00-11:30',s:'Fruitique'},{t:'11:30-1:30am',s:'LJ / Gamekeepers'}],Thu:[{t:'4:30-6:00',s:'LJ'},{t:'6:00-7:00',s:'Henderson'},{t:'7:00-8:00',s:'Break',b:true},{t:'8:00-10:00',s:'LJ'},{t:'10:00-1:30am',s:'LJ / Gamekeepers'}],Sun:[{t:'5:00-7:00',s:'Gamekeepers'},{t:'7:00-8:00',s:'Tassie'},{t:'8:00-9:00',s:'Break',b:true},{t:'9:00-10:00',s:'Gamekeepers'},{t:'10:00-12:00',s:'Mybutcher'},{t:'12:00-1:30am',s:'Gamekeepers'},{t:'1:30-2:00am',s:'Bodiam'}]},
+  'Rosemarie':{Mon:[{t:'10:00pm-1:30am',s:'LJ / Diamond'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],Tue:[{t:'10:00pm-1:30am',s:'LJ / Diamond'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],Wed:[{t:'10:00pm-11:30pm',s:'Help with Fruitique'},{t:'11:30pm-1:30am',s:'Diamond'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],Thu:[{t:'10:00pm-1:30am',s:'LJ / Diamond'},{t:'1:30-2:30',s:'Break',b:true},{t:'2:30-4:00',s:'Tim and Terry'},{t:'4:00-4:30',s:'Bodiam'},{t:'4:30-6:30',s:'Hend INV'},{t:'6:30-7:00',s:'Bodiam'}],Fri:[{t:'9:00pm-11:00pm',s:'Hendersons OE'},{t:'11:00pm-12:00am',s:'Break',b:true},{t:'12:00am-3:00am',s:'Hendersons OE'},{t:'3:00-5:00',s:'Henderson INV'},{t:'5:00-6:00',s:'Bodiam'}]},
+  'Nisa':{Mon:[{t:'1:00-3:00',s:'Dales'},{t:'2:00-4:00',s:'Tim and Terry'},{t:'4:00-5:00',s:'Break',b:true},{t:'5:00-6:00',s:'Bodiam'},{t:'6:00-10:00',s:'MCB / Tassie'}],Tue:[{t:'8:00pm-2:00am',s:'Dales'},{t:'2:00-3:00',s:'Break',b:true},{t:'3:00-5:00',s:'Bodiam'}],Wed:[{t:'8:00pm-2:00am',s:'Dales'},{t:'2:00-3:00',s:'Break',b:true},{t:'3:00-5:00',s:'Bodiam'}],Thu:[{t:'2:00-6:00',s:'Coastal / LJ'},{t:'6:00-7:00',s:'Break',b:true},{t:'7:00-11:00',s:'Coastal / LJ'}],Fri:[{t:'5:00-9:00',s:'Oceanmade / Tassie'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-11:45',s:'Oceanmade'},{t:'11:45-12:00',s:'LJ / Coastal'},{t:'12:00-1:00',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}]},
+  'Ailene':{Mon:[{t:'5:00-9:00',s:'Oceanmade'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}],Tue:[{t:'5:00-9:00',s:'Oceanmade'},{t:'6:00-9:00',s:'LJ'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}],Wed:[{t:'5:00-9:00',s:'Oceanmade / LJ'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}],Thu:[{t:'5:00-9:00',s:'Oceanmade'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}],Sun:[{t:'5:00-9:00',s:'Oceanmade / LJ'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00pm-2:00am',s:'Oceanmade'},{t:'1:00-2:00',s:'Bodiam'}]},
+};
+function getTasks(name,day){if(!name)return null;const n=name.trim();if(TASKS[n])return TASKS[n][day]||null;const lc=n.toLowerCase();for(const[k,v]of Object.entries(TASKS))if(k.toLowerCase()===lc)return v[day]||null;return null;}
+
+/* ---- ALARM ---- */
+let audioCtx=null,alarmUnlocked=false,firedAlerts=new Set();
+function unlockAudio(){if(alarmUnlocked)return;try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();alarmUnlocked=true;document.getElementById('notifStatus').textContent='🔔 Alarm: ON';document.getElementById('notifStatus').style.color='var(--good)';}catch(e){}}
+function playChime(freq,t,dur){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur);}
+function playCutoffAlarm(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const t=audioCtx.currentTime;[523.25,659.25,783.99,1046.5,783.99,523.25].forEach((f,i)=>playChime(f,t+i*0.3,1.0));}catch(e){}}
+function playReportAlarm(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const t=audioCtx.currentTime;[[1046.5,0],[880,0.3],[698.46,0.6],[1046.5,1.1],[880,1.4],[698.46,1.7]].forEach(([f,o])=>playChime(f,t+o,0.4));}catch(e){}}
+function testAlarm(){unlockAudio();playCutoffAlarm();document.body.style.outline='6px solid red';setTimeout(()=>document.body.style.outline='',800);}
+function checkAlarms(){
+  const todayName=DAYS[nowAU().getDay()];
+  orders.forEach(o=>{
+    const isSpecial=SPECIAL_CUTOFFS[o.supplier_name]!==undefined;
+    const ct=isSpecial?(SPECIAL_CUTOFFS[o.supplier_name][todayName]||''):(o.cutoff_time||'');
+    if(!ct)return;
+    const{status}=getCutoffStatus(ct);
+    const key=`co-${o.id}-${ct}`;
+    if(status==='bad'&&!firedAlerts.has(key)){firedAlerts.add(key);playCutoffAlarm();let f=0;const fi=setInterval(()=>{document.body.style.outline=f%2===0?'6px solid red':'none';f++;if(f>10){clearInterval(fi);document.body.style.outline='none';}},300);}
+    if(status!=='bad'&&status!=='passed')firedAlerts.delete(key);
+  });
+  Object.entries(REPORTS).forEach(([supplier,mMap])=>{
+    Object.entries(mMap).forEach(([mName,dayMap])=>{
+      const times=dayMap[todayName];if(!times||!times.length)return;
+      times.forEach(t=>{
+        const now=nowAU();const[h,mi]=t.split(':').map(Number);const rt=nowAU();rt.setHours(h,mi,0,0);
+        const diff=(rt-now)/60000;const rkey=`rep-${mName}-${supplier}-${t}-${todayName}`;
+        if(diff>=0&&diff<=5&&!firedAlerts.has(rkey)){firedAlerts.add(rkey);playReportAlarm();}
+        if(diff<-60||diff>30)firedAlerts.delete(rkey);
+      });
+    });
+  });
+}
+document.addEventListener('click',unlockAudio);
+
+/* ---- AUTH ---- */
 function setStatus(t,type){const p=document.getElementById('statusPill');p.textContent=t;p.className='pill'+(type?' '+type:'');}
 async function checkSession(){const{data:{session}}=await sb.auth.getSession();session?showApp():showLogin();}
 function showLogin(){document.getElementById('loginScreen').style.display='flex';document.getElementById('app').style.display='none';}
@@ -466,129 +309,42 @@ document.getElementById('loginBtn').onclick=async()=>{
 };
 document.getElementById('logoutBtn').onclick=async()=>{await sb.auth.signOut();showLogin();};
 
-/* ======= REALTIME ======= */
-function subscribeRealtime(){
-  sb.channel('dash').on('postgres_changes',{event:'*',schema:'public',table:'supplier_orders'},()=>loadAll())
-    .on('postgres_changes',{event:'*',schema:'public',table:'members'},()=>loadAll()).subscribe();
-}
+/* ---- REALTIME ---- */
+function subscribeRealtime(){sb.channel('dash').on('postgres_changes',{event:'*',schema:'public',table:'supplier_orders'},()=>loadAll()).on('postgres_changes',{event:'*',schema:'public',table:'members'},()=>loadAll()).subscribe();}
 
-/* ======= DATA ======= */
+/* ---- DATA ---- */
+function splitList(v){return(v||'').split(';').map(s=>s.trim()).filter(Boolean);}
 async function loadAll(){
   setStatus('Loading…');
-  const[{data:m,error:e1},{data:o,error:e2}]=await Promise.all([
-    sb.from('members').select('*').order('name'),
-    sb.from('supplier_orders').select('*')
-  ]);
+  const[{data:m,error:e1},{data:o,error:e2}]=await Promise.all([sb.from('members').select('*').order('name'),sb.from('supplier_orders').select('*')]);
   if(e1||e2){setStatus('Connection error','err');return;}
   members=m||[];orders=o||[];
-  checkAlarms();
-  sendCutoffsToSW();
   setStatus('Live · '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit',second:'2-digit'}),'live');
-  updateDayBar();populateShiftFilter();render();
+  updateDayBar();populateShiftFilter();render();checkAlarms();
 }
-
 async function ensureOrderRows(memberId,suppliers){
   const existing=orders.filter(o=>o.member_id===memberId).map(o=>o.supplier_name);
   const missing=suppliers.filter(s=>!existing.includes(s));
   if(!missing.length)return;
-  await sb.from('supplier_orders').insert(missing.map(s=>({member_id:memberId,supplier_name:s,unprocessed_count:0})));
+  await sb.from('supplier_orders').insert(missing.map(s=>({member_id:memberId,supplier_name:s,unprocessed_count:0,cutoff_time:''})));
 }
 
-/* ======= DAY BAR ======= */
-function nowAU(){
-  // Reliable AU time regardless of browser timezone
-  const parts=new Intl.DateTimeFormat('en',{
-    timeZone:'Australia/Sydney',
-    year:'numeric',month:'numeric',day:'numeric',
-    hour:'numeric',minute:'numeric',second:'numeric',hour12:false
-  }).formatToParts(new Date());
-  const get=t=>parseInt(parts.find(p=>p.type===t)?.value||'0');
-  const h=get('hour');
-  return new Date(get('year'),get('month')-1,get('day'),h===24?0:h,get('minute'),get('second'));
-}
+/* ---- DAY BAR ---- */
 function updateDayBar(){
-  const now=nowAU();
-  const todayIdx=now.getDay();
-  const todayName=DAYS[todayIdx];
+  const now=nowAU();const todayName=DAYS[now.getDay()];
   const auTimeStr=new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const auDateStr=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney',day:'numeric',month:'long',year:'numeric'});
-  document.getElementById('todayLabel').textContent=`${todayName}, ${auDateStr}`;
-  document.getElementById('dateLabel').textContent=`🇦🇺 AU Sydney Time: ${auTimeStr} — all cut-off times based on AU time`;
-  const phTime=new Date().toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const ukTime=new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const clockEl=document.getElementById('worldClocks');
-  if(clockEl) clockEl.textContent=`🇵🇭 PH Manila: ${phTime}   🇬🇧 UK London: ${ukTime}`;
-
-  const onShift=Object.entries(ROSTER).filter(([n,d])=>d.schedule[todayName]&&d.schedule[todayName]!=='OFF').length;
-  const offToday=Object.entries(ROSTER).filter(([n,d])=>!d.schedule[todayName]||d.schedule[todayName]==='OFF').length;
+  const auDateStr=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney',weekday:'short',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('todayLabel').textContent=auDateStr;
+  document.getElementById('dateLabel').textContent=`AU Sydney Time: ${auTimeStr} — all cut-off times based on AU time`;
+  const phTime=new Date().toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit'});
+  const ukTime=new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('worldClocks').textContent=`🇵🇭 PH: ${phTime}   🇬🇧 UK: ${ukTime}`;
+  const onShift=members.filter(m=>{const r=getRoster(m.name);return r&&r.schedule[todayName]&&r.schedule[todayName]!=='OFF';}).length;
+  const offToday=members.length-onShift;
   let alerts=0,warns=0;
-  const todayNameSum=DAYS[nowAU().getDay()];
-  orders.forEach(o=>{
-    const isSpecial=SPECIAL_CUTOFFS[o.supplier_name]!==undefined;
-    const ct=isSpecial?(SPECIAL_CUTOFFS[o.supplier_name][todayNameSum]||''):(o.cutoff_time||'');
-    const{status}=getCutoffStatus(ct);
-    if(status==='bad')alerts++;else if(status==='warn')warns++;
-  });
-
-  document.getElementById('summaryPills').innerHTML=`
-    <div class="sum-pill on">✅ ${onShift} on shift</div>
-    <div class="sum-pill off">😴 ${offToday} off today</div>
-    ${warns>0?`<div class="sum-pill warn">🟡 ${warns} near cut-off</div>`:''}
-    ${alerts>0?`<div class="sum-pill alert">🔴 ${alerts} urgent!</div>`:''}
-  `;
+  orders.forEach(o=>{const ct=(SPECIAL_CUTOFFS[o.supplier_name]?SPECIAL_CUTOFFS[o.supplier_name][todayName]:null)||o.cutoff_time||'';const{status}=getCutoffStatus(ct);if(status==='bad')alerts++;else if(status==='warn')warns++;});
+  document.getElementById('summaryPills').innerHTML=`<div class="sum-pill on">✅ ${onShift} on shift</div><div class="sum-pill off">😴 ${offToday} off today</div>${warns>0?`<div class="sum-pill warn">🟡 ${warns} near cut-off`:''}${alerts>0?`<div class="sum-pill alert">🔴 ${alerts} urgent!</div>`:''}`;
 }
-
-/* ======= CUT-OFF ======= */
-function getCutoffStatus(cutoffTime){
-  if(!cutoffTime)return{status:'none',label:'Set cut-off',icon:'⚪'};
-  const now=nowAU();
-  const[h,m]=cutoffTime.split(':').map(Number);
-  const cutoff=nowAU();cutoff.setHours(h,m,0,0);
-  const diff=(cutoff-now)/60000;
-  if(diff<0)return{status:'passed',label:'Passed!',icon:'🔴'};
-  if(diff<=30)return{status:'bad',label:`${Math.round(diff)}min left`,icon:'🔴'};
-  if(diff<=60)return{status:'warn',label:`${Math.round(diff)}min left`,icon:'🟡'};
-  const hrs=Math.floor(diff/60),mins=Math.round(diff%60);
-  return{status:'ok',label:hrs>0?`${hrs}h ${mins}m left`:`${Math.round(diff)}min left`,icon:'🟢'};
-}
-
-// Report alarms (5 mins before) — per member per day
-const REPORTS = {
-  'Heritage': {
-    'Krista':  { Mon:['23:00','00:00'], Tue:['23:00','00:00'] },
-    'Trixy':   { Wed:['23:00','00:00'], Thu:['23:00','00:00'] },
-    'Ellen':   { Fri:['23:00','00:00'], Sat:['23:00','00:00'] },
-  },
-  'Farmford': {
-    'Eden':    { Mon:['20:00','23:00'], Tue:['20:00','23:00'], Wed:['20:00','23:00'], Thu:['20:00','23:00'], Fri:['20:00','23:00'] },
-    'Trixy':   { Sat:['20:00','23:00'] },
-  },
-  'Fisher and Woods': {
-    'Renilyn': {
-      Tue:['05:00','06:00','08:00','09:00'],
-      Wed:['05:00','06:00','08:00','09:00'],
-      Thu:['04:00','06:00','08:00','09:00'],
-      Fri:['04:00','06:00','08:00','09:00'],
-      Sat:['04:00','06:00','08:00','09:00'],
-    }
-  }
-};
-
-function getStartStatus(startTime){
-  if(!startTime) return{status:'none',label:'Set start',icon:'⚪'};
-  const now=nowAU();
-  const[h,m]=startTime.split(':').map(Number);
-  const start=nowAU();start.setHours(h,m,0,0);
-  const diff=(start-now)/60000;
-  if(diff<-60) return{status:'done',label:'Started',icon:'✅'};
-  if(diff<0) return{status:'started',label:'Starting now!',icon:'🔵'};
-  if(diff<=5) return{status:'urgent',label:`${Math.round(diff)}min to start`,icon:'🔴'};
-  if(diff<=30) return{status:'soon',label:`${Math.round(diff)}min to start`,icon:'🟡'};
-  const hrs=Math.floor(diff/60),mins=Math.round(diff%60);
-  return{status:'ok',label:hrs>0?`${hrs}h ${mins}m to start`:`${Math.round(diff)}min to start`,icon:'🔵'};
-}
-
-function splitList(v){return(v||'').split(';').map(s=>s.trim()).filter(Boolean);}
 
 function populateShiftFilter(){
   const sel=document.getElementById('shiftFilter');const cur=sel.value;
@@ -596,143 +352,63 @@ function populateShiftFilter(){
   sel.innerHTML='<option value="">All shifts</option>'+shifts.map(s=>`<option value="${s}">${s}</option>`).join('');sel.value=cur;
 }
 
-/* ======= TABS ======= */
-document.querySelectorAll('.tab').forEach(t=>{
-  t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');currentTab=t.dataset.tab;render();};
-});
+/* ---- TABS ---- */
+document.querySelectorAll('.tab').forEach(t=>{t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');currentTab=t.dataset.tab;render();};});
 
-/* ======= RENDER ======= */
+/* ---- RENDER ---- */
 function render(){
   const q=document.getElementById('searchInput').value.toLowerCase();
   const sf=document.getElementById('shiftFilter').value;
   const todayName=DAYS[nowAU().getDay()];
-
-  let filtered=members.filter(m=>{
-    const hay=[m.name,m.assigned_suppliers].join(' ').toLowerCase();
-    return(!q||hay.includes(q))&&(!sf||(m.shift||'').trim()===sf);
-  });
-
-  if(currentTab==='today'){
-    filtered=filtered.filter(m=>{
-      const roster=ROSTER[m.name];
-      return roster&&roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF';
-    });
-  }
-
+  let filtered=members.filter(m=>{const hay=[m.name,m.assigned_suppliers].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!sf||(m.shift||'').trim()===sf);});
+  if(currentTab==='today')filtered=filtered.filter(m=>{const r=getRoster(m.name);return r&&r.schedule[todayName]&&r.schedule[todayName]!=='OFF';});
   const grid=document.getElementById('grid');
+  if(currentTab==='roster'){renderRoster(filtered,todayName,grid);return;}
+  if(!filtered.length){grid.innerHTML='<div class="empty-state">No members match.</div>';return;}
 
-  if(currentTab==='roster'){
-    renderRoster(filtered,todayName,grid);return;
-  }
-
-  if(!filtered.length){grid.innerHTML='<div class="empty-state">No members match. Try a different filter or tab.</div>';return;}
-
-  // Generate cards into a map
-  const cardMap={};
-  filtered.forEach(member=>{
+  grid.innerHTML=filtered.map(member=>{
     const suppliers=splitList(member.assigned_suppliers);
     ensureOrderRows(member.id,suppliers);
-    const roster=ROSTER[member.name];
+    const roster=getRoster(member.name);
     const todayShift=roster?roster.schedule[todayName]:'';
     const isOff=!todayShift||todayShift==='OFF';
-    const tasks=TASKS[member.name]?TASKS[member.name][todayName]:null;
+    const tasks=getTasks(member.name,todayName);
 
     const supplierRows=suppliers.map(sup=>{
       const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);
-
-      // CUT-OFF
-      const isSpecialCutoff=SPECIAL_CUTOFFS[sup]!==undefined;
-      const cutoff=isSpecialCutoff?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?(row.cutoff_time||''):'');
-      const{status:cs,label:cl,icon:ci}=getCutoffStatus(cutoff);
-      const cutoffDisplay=isSpecialCutoff
-        ?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${cutoff||'None today'}</span>`
-        :`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${cutoff}" data-member="${member.id}" data-supplier="${sup}">`;
-
-      // START TIME
-      const isSpecialStart=SPECIAL_STARTS[sup]!==undefined;
-      const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(row?(row.start_time||''):'');
-      const startTimes=Array.isArray(startRaw)?startRaw:(startRaw?[startRaw]:[]);
-      const startStatuses=startTimes.map(t=>({time:t,...getStartStatus(t)}));
-      const worstStart=startStatuses.find(s=>s.status==='urgent')||startStatuses.find(s=>s.status==='soon')||startStatuses[0];
-      let startDisplay='';
-      if(isSpecialStart){
-        const labels=startTimes.length?startTimes.join(' & '):'None today';
-        startDisplay=`<div class="cutoff-row"><span style="color:#818cf8;font-size:11px;">🔵 Start: ${labels} <span style="font-size:9px;opacity:0.6">(auto)</span></span></div>`;
-      } else {
-        // Use DB value if saved, else fall back to DEFAULT_START_TIMES
-        const dbStartVal=row?.start_time||'';
-        const defaultStartVal=getDefaultStart(sup);
-        const startVal=dbStartVal||defaultStartVal;
-        const isDefault=!dbStartVal&&!!defaultStartVal;
-        startDisplay=`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${startVal}" data-member="${member.id}" data-supplier="${sup}" title="${isDefault?'Pre-filled from schedule — save to lock in':''}"> ${isDefault?'<span style="font-size:9px;color:var(--accent);">●</span>':''}</div>`;
-      }
-
-      const alarmActive=isAlarmDay(member.name, sup, todayName);
-      const rowClass=`supplier-row ${cs==='none'?'':cs==='passed'?'passed':cs}${!alarmActive?' no-alarm':''}`;
-      return`<div class="${rowClass}">
-        <div style="flex:1;">
-          <div class="sup-name">${sup}</div>
-          ${startDisplay}
-          <div class="cutoff-row">${cutoffDisplay}</div>
-        </div>
-        <div class="time-info">
-          ${worstStart?`<div style="font-size:10px;font-weight:600;color:${worstStart.status==='urgent'?'var(--bad)':worstStart.status==='soon'?'var(--warn)':'#818cf8'}">${worstStart.icon} ${worstStart.label}</div>`:''}
-          <div class="status-icon">${ci}</div>
-          <div class="time-left ${cs==='none'?'':cs}">${cl}</div>
-        </div>
-      </div>`;
+      const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;
+      const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?(row.cutoff_time||''):'');
+      const{status,label,icon}=getCutoffStatus(ct);
+      const rowClass=`supplier-row ${status==='none'?'':status==='passed'?'passed':status}`;
+      const ctDisplay=isSpecial?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${ct||'None today'}</span>`:`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${ct}" data-member="${member.id}" data-supplier="${sup}">`;
+      return`<div class="${rowClass}"><div><div class="sup-name">${sup}</div><div class="cutoff-row">${ctDisplay}</div></div><div class="time-info"><div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div></div>`;
     }).join('');
 
-    const taskRows=tasks?tasks.map(tk=>`
-      <div class="task-row ${tk.b?'is-break':''}">
-        <span class="task-time">${tk.t}</span>
-        <span class="task-name">${tk.s}</span>
-      </div>`).join(''):'<div style="color:var(--muted);font-size:12px">No breakdown for today</div>';
-
-    const hasBadCutoff = suppliers.some(sup => {
-      const row = orders.find(o => o.member_id === member.id && o.supplier_name === sup);
-      const isSpecial = SPECIAL_CUTOFFS[sup] !== undefined;
-      const cutoff = isSpecial ? (SPECIAL_CUTOFFS[sup][todayName]||'') : (row?.cutoff_time||'');
-      return getCutoffStatus(cutoff).status === 'bad';
+    const reportLines=[];
+    Object.entries(REPORTS).forEach(([supplier,mMap])=>{
+      const mReports=mMap[member.name]||(()=>{const lc=member.name.trim().toLowerCase();for(const[k,v]of Object.entries(mMap))if(k.toLowerCase()===lc)return v;return null;})();
+      if(!mReports)return;
+      const times=mReports[todayName];if(!times||!times.length)return;
+      times.forEach(t=>{
+        const now=nowAU();const[h,mi]=t.split(':').map(Number);const rt=nowAU();rt.setHours(h,mi,0,0);const diff=(rt-now)/60000;
+        const icon=diff<-30?'✅':diff<=5?'🔴':diff<=30?'🟡':'📋';
+        const lbl=diff<-30?'Done':diff<=0?'Now!':diff<=5?`${Math.round(diff)}min`:`${Math.round(diff)}min`;
+        const col=diff<-30?'var(--good)':diff<=5?'var(--bad)':diff<=30?'var(--warn)':'var(--muted)';
+        reportLines.push(`<div class="report-row"><div><div class="report-name">${supplier} Report</div><div class="report-time">${t}</div></div><span class="report-status" style="color:${col}">${icon} ${lbl}</span></div>`);
+      });
     });
-    const cardHtml=`<div class="member-card ${hasBadCutoff ? 'has-alert' : ''}" data-id="${member.id}">
+
+    const taskRows=tasks?tasks.map(tk=>`<div class="task-row ${tk.b?'is-break':''}"><span class="task-time">${tk.t}</span><span class="task-name">${tk.s}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">No breakdown for today</div>';
+
+    const hasBadCutoff=suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad';});
+
+    return`<div class="member-card ${hasBadCutoff?'has-alert':''}" data-id="${member.id}">
       <div class="card-header">
-        <div>
-          <div class="name">${member.name}</div>
-          ${roster?.role?`<div class="role">${roster.role}</div>`:''}
-        </div>
-        ${(()=>{
-        const isAbsent=member.status==='absent';
-        if(isAbsent) return`<div class="shift-chip" style="background:rgba(220,38,38,0.1);color:var(--bad);border:1px solid rgba(220,38,38,0.3);cursor:pointer;" onclick="toggleStatus('${member.id}','absent')">🚫 OOO/Absent</div>`;
-        if(isOff) return`<div class="shift-chip off-today">😴 Day Off</div>`;
-        return`<div class="shift-chip on-shift" style="cursor:pointer;" onclick="toggleStatus('${member.id}','active')">✅ ${todayShift||'On Shift'}</div>`;
-      })()}
+        <div><div class="name">${member.name}</div>${roster?.role?`<div class="role">${roster.role}</div>`:''}</div>
+        <div class="shift-chip ${isOff?'off-today':'on-shift'}">${isOff?'😴 Day Off':todayShift||'On Shift'}</div>
       </div>
       ${suppliers.length?`<div class="card-section"><div class="section-title">Suppliers & Cut-off Times</div>${supplierRows}</div>`:''}
-      ${(()=>{
-        // Reports for this member today
-        const reportLines=[];
-        Object.entries(REPORTS).forEach(([supplier,memberMap])=>{
-          const memberReports=memberMap[member.name];
-          if(!memberReports) return;
-          const times=memberReports[todayName];
-          if(!times||!times.length) return;
-          times.forEach(t=>{
-            const now=nowAU();
-            const[h,mi]=t.split(':').map(Number);
-            const rt=nowAU();rt.setHours(h,mi,0,0);
-            const diff=(rt-now)/60000;
-            const icon=diff<-30?'✅':diff<=5?'🔴':diff<=30?'🟡':'📋';
-            const label=diff<-30?'Done':diff<=0?'Now!':diff<=5?`${Math.round(diff)}min`:`${Math.round(diff)}min`;
-            reportLines.push(`<div style="display:flex;justify-content:space-between;padding:5px 8px;background:var(--panel-2);border-radius:6px;margin-bottom:4px;border:1px solid var(--line);">
-              <span style="font-size:12px;font-weight:600;">${supplier} Report <span style="font-size:10px;color:var(--muted);font-weight:400;">${t}</span></span>
-              <span style="font-size:11px;font-weight:600;color:${diff<-30?'var(--good)':diff<=5?'var(--bad)':diff<=30?'var(--warn)':'var(--muted)'};">${icon} ${label}</span>
-            </div>`);
-          });
-        });
-        if(!reportLines.length) return '';
-        return`<div class="card-section"><div class="section-title">📋 Reports Due Today</div>${reportLines.join('')}</div>`;
-      })()}
+      ${reportLines.length?`<div class="card-section"><div class="section-title">📋 Reports Due Today</div>${reportLines.join('')}</div>`:''}
       <div class="card-section"><div class="section-title">Today's Schedule Breakdown</div><div class="task-list">${taskRows}</div></div>
       <div class="card-edit">
         <input class="name-edit" placeholder="Name" value="${member.name||''}">
@@ -741,105 +417,36 @@ function render(){
         <button class="save-btn" data-id="${member.id}">Save</button>
         <button class="del-btn" data-id="${member.id}">Delete</button>
       </div>
-    `;
-    cardMap[member.id]=cardHtml;
-  });
-
-  // Assemble by team
-  let teamHtml='';
-  TEAMS.forEach(team=>{
-    const teamMembers=filtered.filter(m=>team.members.includes(m.name));
-    if(!teamMembers.length) return;
-    const onShiftCount=teamMembers.filter(m=>{
-      const r=ROSTER[m.name];
-      const s=r?r.schedule[todayName]:'';
-      return m.status!=='absent'&&s&&s!=='OFF';
-    }).length;
-    const cardsHtml=teamMembers.map(m=>cardMap[m.id]||'').join('');
-    teamHtml+=`<div class="team-section">
-      <div class="team-header" style="border-left:3px solid ${team.color}">
-        <div><span class="team-name">${team.label}</span><span class="team-shift-badge" style="color:${team.color};border-color:${team.color}40">${team.shift}</span></div>
-        <span class="team-count">${onShiftCount} on shift today · ${teamMembers.length} total</span>
-      </div>
-      <div class="inner-grid">${cardsHtml}</div>
     </div>`;
-  });
-  const others=filtered.filter(m=>!ALL_TEAM_MEMBERS.has(m.name));
-  if(others.length){
-    teamHtml+=`<div class="team-section"><div class="team-header" style="border-left:3px solid var(--muted)"><span class="team-name">Other Members</span></div><div class="inner-grid">${others.map(m=>cardMap[m.id]||'').join('')}</div></div>`;
-  }
-  grid.innerHTML=teamHtml||'<div style="padding:40px;text-align:center;color:var(--muted)">No members match.</div>';
+  }).join('');
 
-  // Events
   grid.querySelectorAll('.cutoff-input').forEach(i=>i.onchange=()=>updateCutoff(i.dataset.member,i.dataset.supplier,i.value));
-  grid.querySelectorAll('.start-input').forEach(i=>i.onchange=()=>updateStart(i.dataset.member,i.dataset.supplier,i.value));
   grid.querySelectorAll('.save-btn').forEach(b=>b.onclick=()=>saveMember(b.dataset.id,b.closest('.member-card')));
   grid.querySelectorAll('.del-btn').forEach(b=>b.onclick=()=>deleteMember(b.dataset.id));
 }
 
 function renderRoster(filtered,todayName,grid){
   if(!filtered.length){grid.innerHTML='<div class="empty-state">No members to show.</div>';return;}
-  // Generate roster cards
-  const rosterCardMap={};
-  filtered.forEach(member=>{
-    const roster=ROSTER[member.name];
-    if(!roster){rosterCardMap[member.id]='';return;}
-    const cells=DAYS.map((d,i)=>{
-      const shift=roster.schedule[d]||'';
-      const isOff=!shift||shift==='OFF';
-      const isToday=d===todayName;
-      return`<div class="day-cell ${isOff?'is-off':''} ${isToday?'is-today':''}">
-        <div class="day-name">${d}</div>
-        <div class="day-shift">${isOff?'OFF':shift}</div>
-      </div>`;
-    }).join('');
-    rosterCardMap[member.id]=`<div class="member-card" data-id="${member.id}">
+  grid.innerHTML=filtered.map(member=>{
+    const roster=getRoster(member.name);if(!roster)return'';
+    const cells=DAYS.map(d=>{const shift=roster.schedule[d]||'';const isOff=!shift||shift==='OFF';const isToday=d===todayName;
+      return`<div class="day-cell ${isOff?'is-off':''} ${isToday?'is-today':''}"><div class="day-name">${d}</div><div class="day-shift">${isOff?'OFF':shift}</div></div>`;}).join('');
+    return`<div class="member-card" data-id="${member.id}">
       <div class="card-header">
         <div><div class="name">${member.name}</div>${roster.role?`<div class="role">${roster.role}</div>`:''}</div>
-        <div class="${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'shift-chip on-shift':'shift-chip off-today'}">${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'✅ On':'😴 Off'}</div>
+        <div class="shift-chip ${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'on-shift':'off-today'}">${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'✅ On':'😴 Off'}</div>
       </div>
       <div class="card-section"><div class="section-title">Weekly Roster</div><div class="week-grid">${cells}</div></div>
     </div>`;
-  });
-  // Group by team
-  let rosterHtml='';
-  TEAMS.forEach(team=>{
-    const tm=filtered.filter(m=>team.members.includes(m.name));
-    if(!tm.length)return;
-    rosterHtml+=`<div class="team-section">
-      <div class="team-header" style="border-left:3px solid ${team.color}">
-        <span class="team-name">${team.label}</span>
-        <span class="team-shift-badge" style="color:${team.color};border-color:${team.color}40">${team.shift}</span>
-      </div>
-      <div class="inner-grid">${tm.map(m=>rosterCardMap[m.id]||'').join('')}</div>
-    </div>`;
-  });
-  const rOthers=filtered.filter(m=>!ALL_TEAM_MEMBERS.has(m.name));
-  if(rOthers.length) rosterHtml+=`<div class="team-section"><div class="team-header" style="border-left:3px solid var(--muted)"><span class="team-name">Other Members</span></div><div class="inner-grid">${rOthers.map(m=>rosterCardMap[m.id]||'').join('')}</div></div>`;
-  grid.innerHTML=rosterHtml;
+  }).join('');
 }
 
-async function updateCutoff(memberId,supplier,cutoffTime){
+async function updateCutoff(memberId,supplier,ct){
   const ex=orders.find(o=>o.member_id===memberId&&o.supplier_name===supplier);
-  if(ex)await sb.from('supplier_orders').update({cutoff_time:cutoffTime}).eq('id',ex.id);
-  else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,cutoff_time:cutoffTime,unprocessed_count:0});
+  if(ex)await sb.from('supplier_orders').update({cutoff_time:ct}).eq('id',ex.id);
+  else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,cutoff_time:ct,unprocessed_count:0});
   loadAll();
 }
-async function updateStart(memberId,supplier,startTime){
-  const ex=orders.find(o=>o.member_id===memberId&&o.supplier_name===supplier);
-  if(ex) await sb.from('supplier_orders').update({start_time:startTime}).eq('id',ex.id);
-  else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,start_time:startTime,cutoff_time:'',unprocessed_count:0});
-  loadAll();
-}
-
-async function toggleStatus(id, currentStatus){
-  const todayAUDate=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
-  const newStatus=currentStatus==='absent'?'active':'absent';
-  const statusDate=newStatus==='absent'?todayAUDate:'';
-  await sb.from('members').update({status:newStatus,status_date:statusDate}).eq('id',id);
-  loadAll();
-}
-
 async function saveMember(id,card){
   await sb.from('members').update({name:card.querySelector('.name-edit').value.trim(),shift:card.querySelector('.shift-edit').value.trim(),assigned_suppliers:card.querySelector('.suppliers-edit').value.trim()}).eq('id',id);
   loadAll();
@@ -848,208 +455,6 @@ async function deleteMember(id){if(!confirm('Remove this member?'))return;await 
 document.getElementById('addBtn').onclick=async()=>{await sb.from('members').insert({name:'New member',shift:'',assigned_suppliers:'',monitored_suppliers:'',notes:''});loadAll();};
 document.getElementById('searchInput').addEventListener('input',render);
 document.getElementById('shiftFilter').addEventListener('change',render);
-
-
-/* ======= ALARM SYSTEM ======= */
-let firedAlerts = new Set();
-let audioCtx = null;
-let alarmUnlocked = false;
-
-function unlockAudio(){
-  if(alarmUnlocked) return;
-  try{
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    alarmUnlocked = true;
-    document.getElementById('alarmStatus').textContent = '🔔 Alarm: ON';
-    document.getElementById('alarmStatus').style.color = 'var(--good)';
-  } catch(e){ console.warn('Audio unlock failed:', e); }
-}
-
-function playReportAlarm(){
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const t = audioCtx.currentTime;
-    // Triple descending ding — distinct from chime and bell
-    [[1046.5,0],[880,0.3],[698.46,0.6],[1046.5,1.1],[880,1.4],[698.46,1.7]].forEach(([freq,offset])=>{
-      const osc=audioCtx.createOscillator();
-      const gain=audioCtx.createGain();
-      osc.connect(gain);gain.connect(audioCtx.destination);
-      osc.type='triangle';
-      osc.frequency.setValueAtTime(freq,t+offset);
-      gain.gain.setValueAtTime(0,t+offset);
-      gain.gain.linearRampToValueAtTime(0.2,t+offset+0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+offset+0.4);
-      osc.start(t+offset);osc.stop(t+offset+0.4);
-    });
-  }catch(e){console.warn('Report alarm error:',e);}
-}
-
-function playStartAlarm(){
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const t = audioCtx.currentTime;
-    // Rising two-tone bell — D5 and A5 perfect fifth, warm and distinct
-    [[587.33,0],[880,0.25],[587.33,0.6],[880,0.85],[587.33,1.2],[880,1.45]].forEach(([freq,offset])=>{
-      const osc=audioCtx.createOscillator();
-      const gain=audioCtx.createGain();
-      osc.connect(gain);gain.connect(audioCtx.destination);
-      osc.type='sine';
-      osc.frequency.setValueAtTime(freq,t+offset);
-      gain.gain.setValueAtTime(0,t+offset);
-      gain.gain.linearRampToValueAtTime(0.2,t+offset+0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001,t+offset+0.35);
-      osc.start(t+offset);osc.stop(t+offset+0.35);
-    });
-  }catch(e){console.warn('Start alarm error:',e);}
-}
-
-function playChime(freq, startTime, duration){
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(freq, startTime);
-  gain.gain.setValueAtTime(0, startTime);
-  gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
-  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-  osc.start(startTime);
-  osc.stop(startTime + duration);
-}
-
-function playAlarm(){
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-    const t = audioCtx.currentTime;
-    // Gentle chime — C major arpeggio, soft and soothing
-    playChime(523.25, t + 0.0, 1.2);   // C5
-    playChime(659.25, t + 0.3, 1.1);   // E5
-    playChime(783.99, t + 0.6, 1.0);   // G5
-    playChime(1046.5, t + 0.9, 1.4);   // C6 — soft high note
-    playChime(783.99, t + 1.4, 0.9);   // G5 fade out
-    playChime(523.25, t + 1.8, 1.2);   // C5 resolve
-  } catch(e){ console.warn('Alarm error:', e); }
-}
-
-function testAlarm(){
-  unlockAudio();
-  playAlarm();
-  // Flash body briefly
-  document.body.style.outline = '6px solid red';
-  setTimeout(() => document.body.style.outline = '', 800);
-}
-
-function checkAlarms(){
-  if(!orders.length) return;
-  const todayNameAlarm = DAYS[nowAU().getDay()];
-  orders.forEach(o => {
-    // --- CUT-OFF CHECK ---
-    const isSpecialCO = SPECIAL_CUTOFFS[o.supplier_name] !== undefined;
-    const cutoffToday = isSpecialCO ? (SPECIAL_CUTOFFS[o.supplier_name][todayNameAlarm]||'') : (o.cutoff_time||'');
-    if(cutoffToday){
-      const member=members.find(m=>m.id===o.member_id);
-      const canAlarmCO = member ? isAlarmDay(member.name, o.supplier_name, todayNameAlarm) : true;
-      const { status } = getCutoffStatus(cutoffToday);
-      const alertKey = `co-${o.id}-${cutoffToday}`;
-    if((status === 'bad') && !firedAlerts.has(alertKey)){
-      firedAlerts.add(alertKey);
-      playAlarm();
-      // Flash body
-      let flashes = 0;
-      const flashInterval = setInterval(() => {
-        document.body.style.outline = flashes % 2 === 0 ? '6px solid red' : 'none';
-        flashes++;
-        if(flashes > 10) { clearInterval(flashInterval); document.body.style.outline = 'none'; }
-      }, 300);
-      // Browser notification
-      if(Notification.permission === 'granted'){
-        const member = members.find(m => m.id === o.member_id);
-        const name = member ? member.name : 'Someone';
-        new Notification('⚠️ Cut-off Alert!', {
-          body: name + ' — ' + o.supplier_name + ' cut-off in 30 mins or less!',
-          requireInteraction: true
-        });
-      }
-    }
-      if(status !== 'bad' && status !== 'passed') firedAlerts.delete(alertKey);
-    }
-
-    // --- START TIME CHECK ---
-    const isSpecialST = SPECIAL_STARTS[o.supplier_name] !== undefined;
-    let startRaw = isSpecialST ? SPECIAL_STARTS[o.supplier_name][todayNameAlarm] : (o.start_time||getDefaultStart(o.supplier_name)||'');
-    const startTimes = Array.isArray(startRaw) ? startRaw : (startRaw?[startRaw]:[]);
-    startTimes.forEach(st => {
-      const { status:ss } = getStartStatus(st);
-      const startKey = `st-${o.id}-${st}-${todayNameAlarm}`;
-      const mForStart=members.find(m=>m.id===o.member_id);
-      const canAlarmST=mForStart?isAlarmDay(mForStart.name,o.supplier_name,todayNameAlarm):true;
-      if((ss==='urgent') && canAlarmST && !firedAlerts.has(startKey)){
-        firedAlerts.add(startKey);
-        playStartAlarm();
-      }
-      if(ss==='done'||ss==='ok') firedAlerts.delete(startKey);
-    });
-  });
-  // --- REPORT ALARM CHECK ---
-  Object.entries(REPORTS).forEach(([supplier,memberMap])=>{
-    Object.entries(memberMap).forEach(([memberName,dayMap])=>{
-      const times=dayMap[todayNameAlarm];
-      if(!times||!times.length) return;
-      const member=members.find(m=>m.name===memberName);
-      if(!member) return;
-      times.forEach(t=>{
-        const now=nowAU();
-        const[h,mi]=t.split(':').map(Number);
-        const rt=nowAU();rt.setHours(h,mi,0,0);
-        const diff=(rt-now)/60000;
-        const reportKey=`report-${memberName}-${supplier}-${t}-${todayNameAlarm}`;
-        if(diff>=0&&diff<=5&&!firedAlerts.has(reportKey)){
-          firedAlerts.add(reportKey);
-          playReportAlarm();
-        }
-        if(diff<-60||diff>30) firedAlerts.delete(reportKey);
-      });
-    });
-  });
-  // Keep SW in sync
-  sendCutoffsToSW();
-}
-
-// ---- SERVICE WORKER REGISTRATION ----
-let swRegistration = null;
-
-async function registerSW(){
-  if(!('serviceWorker' in navigator)) return;
-  try{
-    swRegistration = await navigator.serviceWorker.register('./sw.js');
-    console.log('SW registered');
-  } catch(e){ console.warn('SW failed:', e); }
-}
-
-function sendCutoffsToSW(){
-  if(!swRegistration || !swRegistration.active) return;
-  const data = orders.filter(o => o.cutoff_time).map(o => {
-    const member = members.find(m => m.id === o.member_id);
-    return {
-      memberId: o.member_id,
-      memberName: member ? member.name : 'Unknown',
-      supplierName: o.supplier_name,
-      cutoffTime: o.cutoff_time
-    };
-  });
-  swRegistration.active.postMessage({ type:'UPDATE_CUTOFFS', data });
-}
-
-// Request notification permission with a prompt
-function requestNotifPermission(){} // disabled
-
-// Unlock audio on ANY click
-document.addEventListener('click', unlockAudio);
-registerSW();
-requestNotifPermission();
 
 checkSession();
 setInterval(()=>{updateDayBar();render();checkAlarms();},30000);

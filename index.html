@@ -492,16 +492,41 @@ function render(){
 
     const supplierRows=suppliers.map(sup=>{
       const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);
-      const cutoff=row?(row.cutoff_time||''):'';
-      const{status,label,icon}=getCutoffStatus(cutoff);
-      return`<div class="supplier-row ${status==='none'?'':status==='passed'?'passed':status}">
-        <div>
+
+      // CUT-OFF
+      const isSpecialCutoff=SPECIAL_CUTOFFS[sup]!==undefined;
+      const cutoff=isSpecialCutoff?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?(row.cutoff_time||''):'');
+      const{status:cs,label:cl,icon:ci}=getCutoffStatus(cutoff);
+      const cutoffDisplay=isSpecialCutoff
+        ?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${cutoff||'None today'}</span>`
+        :`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${cutoff}" data-member="${member.id}" data-supplier="${sup}">`;
+
+      // START TIME
+      const isSpecialStart=SPECIAL_STARTS[sup]!==undefined;
+      const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(row?(row.start_time||''):'');
+      const startTimes=Array.isArray(startRaw)?startRaw:(startRaw?[startRaw]:[]);
+      const startStatuses=startTimes.map(t=>({time:t,...getStartStatus(t)}));
+      const worstStart=startStatuses.find(s=>s.status==='urgent')||startStatuses.find(s=>s.status==='soon')||startStatuses[0];
+      let startDisplay='';
+      if(isSpecialStart){
+        const labels=startTimes.length?startTimes.join(' & '):'None today';
+        startDisplay=`<div class="cutoff-row"><span style="color:#818cf8;font-size:11px;">🔵 Start: ${labels}</span></div>`;
+      } else {
+        startDisplay=`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${row?.start_time||''}" data-member="${member.id}" data-supplier="${sup}"></div>`;
+      }
+
+      const rowClass=`supplier-row ${cs==='none'?'':cs==='passed'?'passed':cs}`;
+      return`<div class="${rowClass}">
+        <div style="flex:1;">
           <div class="sup-name">${sup}</div>
-          <div class="cutoff-row"><span class="cutoff-label">Cut-off:</span>
-            <input class="cutoff-input" type="time" value="${cutoff}" data-member="${member.id}" data-supplier="${sup}">
-          </div>
+          ${startDisplay}
+          <div class="cutoff-row">${cutoffDisplay}</div>
         </div>
-        <div class="time-info"><div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div>
+        <div class="time-info">
+          ${worstStart?`<div style="font-size:10px;font-weight:600;color:${worstStart.status==='urgent'?'var(--bad)':worstStart.status==='soon'?'var(--warn)':'#818cf8'}">${worstStart.icon} ${worstStart.label}</div>`:''}
+          <div class="status-icon">${ci}</div>
+          <div class="time-left ${cs==='none'?'':cs}">${cl}</div>
+        </div>
       </div>`;
     }).join('');
 

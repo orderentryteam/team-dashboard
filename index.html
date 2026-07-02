@@ -370,7 +370,26 @@ function render(){
   const sf=document.getElementById('shiftFilter').value;
   const todayName=DAYS[nowAU().getDay()];
   let filtered=members.filter(m=>{const hay=[m.name,m.assigned_suppliers].join(' ').toLowerCase();return(!q||hay.includes(q))&&(!sf||(m.shift||'').trim()===sf);});
-  if(currentTab==='today')filtered=filtered.filter(m=>{const r=getRoster(m.name);return r&&r.schedule[todayName]&&r.schedule[todayName]!=='OFF';});
+  const auNow=nowAU();
+  const auHour=auNow.getHours();
+  const yIdx=(auNow.getDay()+6)%7;
+  const yesterdayName=DAYS[yIdx];
+  if(currentTab==='today')filtered=filtered.filter(m=>{
+    const r=getRoster(m.name);
+    if(!r) return false;
+    // Always show if they have a shift today
+    const todayShift=r.schedule[todayName];
+    if(todayShift&&todayShift!=='OFF') return true;
+    // Before 12noon: also show overnight carryovers from yesterday
+    if(auHour<12){
+      const yShift=r.schedule[yesterdayName]||'';
+      if(yShift&&yShift!=='OFF'){
+        const endTime=(yShift.split('-')[1]||'').toLowerCase();
+        if(endTime.includes('am')) return true; // overnight shift, still working
+      }
+    }
+    return false;
+  });
   const grid=document.getElementById('grid');
   if(currentTab==='roster'){renderRoster(filtered,todayName,grid);return;}
   if(!filtered.length){grid.innerHTML='<div class="empty-state">No members match.</div>';return;}

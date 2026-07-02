@@ -243,13 +243,77 @@ const SPECIAL_CUTOFFS={
 /* ---- START TIMES ---- */
 const DEFAULT_START_TIMES={'Fruitique':'21:00','Gamekeepers':'20:00','Oceanmade':'17:00','Coastal Fresh':'15:00','Fussy Fruit':'19:30','Tim and Terry':'02:00','Tim & Terry':'02:00','MyButcher':'10:30','Mybutcher':'10:30','LJ':'18:00','Diamond':'22:30','Bodiam':'03:00','Hillheads':'08:00','Greenpoint':'11:00','MCB':'07:00','Heritage':'05:00','Farmford':'04:00','Clover':'06:00','Adams':'01:30','Adams Wholesale UK':'01:30'};
 const SPECIAL_STARTS={'Fisher and Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Fisher & Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Henderson OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Hendersons OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Henderson INV':{Mon:'04:30',Tue:'04:30',Wed:'',Thu:'04:30',Fri:'03:00',Sat:'',Sun:''},'Dales':{Mon:['01:00','20:00'],Tue:'',Wed:'20:00',Thu:'',Fri:'',Sat:'',Sun:''},'Tassie FineFood':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie FineFoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie Finefoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'}};
+// Which days each member gets alarms for a supplier (show always, alarm only on listed days)
+const SUPPLIER_DAYS={
+  'Eden':      {'Hillheads':['Mon']},
+  'Renilyn':   {'Hillheads':['Tue','Wed','Thu','Fri','Sat'],'MyButcher':['Tue','Wed','Thu','Fri'],'Mybutcher':['Tue','Wed','Thu','Fri'],'Fisher and Woods':['Tue','Wed','Thu','Fri','Sat'],'Fisher & Woods':['Tue','Wed','Thu','Fri','Sat']},
+  'Ellen':     {'MyButcher':['Mon'],'Mybutcher':['Mon']},
+  'Marie':     {'Dales':['Mon']},
+  'Jade':      {'Dales':['Mon']},
+  'Nisa':      {'MCB':['Mon'],'Oceanmade':['Fri']},
+  'Anelie':    {'MCB':['Tue','Wed','Thu','Fri','Sat']},
+  'Rosemarie': {'Fruitique':['Wed']},
+  'Trixy':     {'Farmford':['Sat'],'Clover':['Sat'],'Cloverfresh':['Sat']},
+  'Ailene':    {'Oceanmade':['Mon','Tue','Wed','Thu','Sun']},
+};
+
+// Alarm rules per member per supplier
+// cutoffDays: days to fire cutoff alarm ([] = never)
+// startDays:  days to fire start alarm  ([] = never, null = all workdays)
+const ALARM_RULES={
+  'Ailene':    {'Bodiam':{cutoffDays:[],startDays:['Mon','Tue','Wed','Thu','Sun']}},
+  'Hazel':     {'Bodiam':{cutoffDays:[],startDays:['Mon']}},
+  'Nisa':      {'Bodiam':{cutoffDays:[],startDays:['Fri']}},
+  'Marie':     {'Bodiam':{cutoffDays:[],startDays:[]}},
+  'Renilyn':   {'Bodiam':{cutoffDays:[],startDays:[]}},
+  'Trixy':     {'Bodiam':{cutoffDays:[],startDays:[]}},
+  'Ellen':     {'Bodiam':{cutoffDays:[],startDays:[]}},
+};
+
+// Member-specific start time overrides (overrides DEFAULT_START_TIMES)
+const MEMBER_START_OVERRIDES={
+  'Ailene':{'Bodiam':'01:00'},
+  'Hazel': {'Bodiam':'01:00'},
+};
+
+function getAlarmRule(memberName,supplier){
+  const mn=memberName.trim().toLowerCase(),sn=supplier.trim().toLowerCase();
+  for(const[m,sups]of Object.entries(ALARM_RULES)){
+    if(m.toLowerCase()!==mn)continue;
+    for(const[s,rule]of Object.entries(sups)){if(s.toLowerCase()===sn)return rule;}
+  }return null;
+}
+function isAlarmDay(memberName,supplier,dayName){
+  const mn=memberName.trim().toLowerCase(),sn=supplier.trim().toLowerCase();
+  for(const[m,sups]of Object.entries(SUPPLIER_DAYS)){
+    if(m.toLowerCase()!==mn)continue;
+    for(const[s,days]of Object.entries(sups)){if(s.toLowerCase()===sn)return days.includes(dayName);}
+  }return true;
+}
+function canFireCutoffAlarm(memberName,supplier,dayName){
+  const rule=getAlarmRule(memberName,supplier);
+  if(rule)return rule.cutoffDays.includes(dayName);
+  return isAlarmDay(memberName,supplier,dayName);
+}
+function canFireStartAlarm(memberName,supplier,dayName){
+  const rule=getAlarmRule(memberName,supplier);
+  if(rule)return rule.startDays.includes(dayName);
+  return isAlarmDay(memberName,supplier,dayName);
+}
+function getMemberStartTime(memberName,supplier){
+  const mn=memberName.trim(),sn=supplier.trim();
+  const override=MEMBER_START_OVERRIDES[mn]||Object.entries(MEMBER_START_OVERRIDES).find(([k])=>k.toLowerCase()===mn.toLowerCase())?.[1];
+  if(override){const t=override[sn]||Object.entries(override).find(([k])=>k.toLowerCase()===sn.toLowerCase())?.[1];if(t)return t;}
+  return getDefaultStart(supplier);
+}
+
 function getDefaultStart(sup){if(!sup)return'';const s=sup.trim();if(DEFAULT_START_TIMES[s])return DEFAULT_START_TIMES[s];const lc=s.toLowerCase();for(const[k,v]of Object.entries(DEFAULT_START_TIMES)){if(k.toLowerCase()===lc)return v;for(const kl=k.toLowerCase();lc.startsWith(kl)||kl.startsWith(lc);)return v;}return'';}
 function getStartStatus(st){if(!st)return{status:'none',label:'Set start',icon:'⚪'};const now=nowAU();const[h,m]=st.split(':').map(Number);const s=nowAU();s.setHours(h,m,0,0);const diff=(s-now)/60000;if(diff<-60)return{status:'done',label:'Started',icon:'✅'};if(diff<0)return{status:'started',label:'Starting now!',icon:'🔵'};if(diff<=5)return{status:'urgent',label:`${Math.round(diff)}min to start`,icon:'🔴'};if(diff<=30)return{status:'soon',label:`${Math.round(diff)}min to start`,icon:'🟡'};const hrs=Math.floor(diff/60),mins=Math.round(diff%60);return{status:'ok',label:hrs>0?`${hrs}h ${mins}m to start`:`${Math.round(diff)}min to start`,icon:'🔵'};}
 
 /* ---- REPORTS ---- */
 const REPORTS={
-  'Heritage':{'Krista':{Mon:['23:00','00:00'],Tue:['23:00','00:00']},'Trixy':{Wed:['23:00','00:00'],Thu:['23:00','00:00']},'Ellen':{Fri:['23:00','00:00'],Sat:['23:00','00:00']}},
-  'Farmford':{'Eden':{Mon:['20:00','23:00'],Tue:['20:00','23:00'],Wed:['20:00','23:00'],Thu:['20:00','23:00'],Fri:['20:00','23:00']},'Trixy':{Sat:['20:00','23:00']}},
+  'Heritage':{'Krista':{Mon:['08:00','09:00'],Tue:['08:00','09:00']},'Trixy':{Wed:['08:00','09:00'],Thu:['08:00','09:00']},'Ellen':{Fri:['08:00','09:00'],Sat:['08:00','09:00']}},
+  'Farmford':{'Eden':{Mon:['05:00','08:00'],Tue:['05:00','08:00'],Wed:['05:00','08:00'],Thu:['05:00','08:00'],Fri:['05:00','08:00']},'Trixy':{Sat:['05:00','08:00']}},
   'Fisher and Woods':{'Renilyn':{Tue:['05:00','06:00','08:00','09:00'],Wed:['05:00','06:00','08:00','09:00'],Thu:['04:00','06:00','08:00','09:00'],Fri:['04:00','06:00','08:00','09:00'],Sat:['04:00','06:00','08:00','09:00']}},
 };
 
@@ -482,7 +546,7 @@ function render(){
       const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(row?(row.start_time||''):'');
       const startTimes=Array.isArray(startRaw)?startRaw:(startRaw?[startRaw]:[]);
       const dbStart=row?.start_time||'';
-      const defaultStart=!isSpecialStart?(dbStart||getDefaultStart(sup)||''):'';
+      const defaultStart=!isSpecialStart?(dbStart||getMemberStartTime(member.name,sup)||''):'';
       const startStatuses=startTimes.map(t=>({time:t,...getStartStatus(t)}));
       const worstStart=startStatuses.find(s=>s.status==='urgent')||startStatuses.find(s=>s.status==='soon')||startStatuses[0];
       const startDisplay=isSpecialStart

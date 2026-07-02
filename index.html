@@ -221,6 +221,12 @@ const SPECIAL_CUTOFFS={
   'Adams':    {Mon:'08:30',Tue:'08:30',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'09:00',Sun:''},
 };
 
+/* ---- START TIMES ---- */
+const DEFAULT_START_TIMES={'Fruitique':'21:00','Gamekeepers':'20:00','Oceanmade':'17:00','Coastal Fresh':'15:00','Fussy Fruit':'19:30','Tim and Terry':'02:00','Tim & Terry':'02:00','MyButcher':'10:30','Mybutcher':'10:30','LJ':'18:00','Diamond':'22:30','Bodiam':'03:00','Hillheads':'08:00','Greenpoint':'11:00','MCB':'07:00','Heritage':'05:00','Farmford':'04:00','Clover':'06:00','Adams':'01:30','Adams Wholesale UK':'01:30'};
+const SPECIAL_STARTS={'Fisher and Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Fisher & Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Henderson OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Hendersons OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Henderson INV':{Mon:'04:30',Tue:'04:30',Wed:'',Thu:'04:30',Fri:'03:00',Sat:'',Sun:''},'Dales':{Mon:['01:00','20:00'],Tue:'',Wed:'20:00',Thu:'',Fri:'',Sat:'',Sun:''},'Tassie FineFood':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie FineFoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie Finefoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'}};
+function getDefaultStart(sup){if(!sup)return'';const s=sup.trim();if(DEFAULT_START_TIMES[s])return DEFAULT_START_TIMES[s];const lc=s.toLowerCase();for(const[k,v]of Object.entries(DEFAULT_START_TIMES)){if(k.toLowerCase()===lc)return v;for(const kl=k.toLowerCase();lc.startsWith(kl)||kl.startsWith(lc);)return v;}return'';}
+function getStartStatus(st){if(!st)return{status:'none',label:'Set start',icon:'⚪'};const now=nowAU();const[h,m]=st.split(':').map(Number);const s=nowAU();s.setHours(h,m,0,0);const diff=(s-now)/60000;if(diff<-60)return{status:'done',label:'Started',icon:'✅'};if(diff<0)return{status:'started',label:'Starting now!',icon:'🔵'};if(diff<=5)return{status:'urgent',label:`${Math.round(diff)}min to start`,icon:'🔴'};if(diff<=30)return{status:'soon',label:`${Math.round(diff)}min to start`,icon:'🟡'};const hrs=Math.floor(diff/60),mins=Math.round(diff%60);return{status:'ok',label:hrs>0?`${hrs}h ${mins}m to start`:`${Math.round(diff)}min to start`,icon:'🔵'};}
+
 /* ---- REPORTS ---- */
 const REPORTS={
   'Heritage':{'Krista':{Mon:['23:00','00:00'],Tue:['23:00','00:00']},'Trixy':{Wed:['23:00','00:00'],Thu:['23:00','00:00']},'Ellen':{Fri:['23:00','00:00'],Sat:['23:00','00:00']}},
@@ -319,6 +325,9 @@ async function loadAll(){
   const[{data:m,error:e1},{data:o,error:e2}]=await Promise.all([sb.from('members').select('*').order('name'),sb.from('supplier_orders').select('*')]);
   if(e1||e2){setStatus('Connection error','err');return;}
   members=m||[];orders=o||[];
+  const todayAU=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
+  const expired=members.filter(m=>m.status==='absent'&&m.status_date!==todayAU);
+  if(expired.length){await Promise.all(expired.map(m=>sb.from('members').update({status:'active',status_date:''}).eq('id',m.id)));members=members.map(m=>expired.find(e=>e.id===m.id)?{...m,status:'active'}:m);}
   setStatus('Live · '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit',second:'2-digit'}),'live');
   updateDayBar();populateShiftFilter();render();checkAlarms();
 }
@@ -381,7 +390,18 @@ function render(){
       const{status,label,icon}=getCutoffStatus(ct);
       const rowClass=`supplier-row ${status==='none'?'':status==='passed'?'passed':status}`;
       const ctDisplay=isSpecial?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${ct||'None today'}</span>`:`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${ct}" data-member="${member.id}" data-supplier="${sup}">`;
-      return`<div class="${rowClass}"><div><div class="sup-name">${sup}</div><div class="cutoff-row">${ctDisplay}</div></div><div class="time-info"><div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div></div>`;
+      // Start time
+      const isSpecialStart=SPECIAL_STARTS[sup]!==undefined;
+      const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(row?(row.start_time||''):'');
+      const startTimes=Array.isArray(startRaw)?startRaw:(startRaw?[startRaw]:[]);
+      const dbStart=row?.start_time||'';
+      const defaultStart=!isSpecialStart?(dbStart||getDefaultStart(sup)||''):'';
+      const startStatuses=startTimes.map(t=>({time:t,...getStartStatus(t)}));
+      const worstStart=startStatuses.find(s=>s.status==='urgent')||startStatuses.find(s=>s.status==='soon')||startStatuses[0];
+      const startDisplay=isSpecialStart
+        ?`<div class="cutoff-row"><span style="color:#818cf8;font-size:11px;">🔵 Start: ${startTimes.length?startTimes.join(' & '):'None today'} <span style="opacity:0.6;font-size:9px">(auto)</span></span></div>`
+        :`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${defaultStart}" data-member="${member.id}" data-supplier="${sup}"></div>`;
+      return`<div class="${rowClass}"><div style="flex:1"><div class="sup-name">${sup}</div>${startDisplay}<div class="cutoff-row">${ctDisplay}</div></div><div class="time-info">${worstStart?`<div style="font-size:10px;font-weight:600;color:${worstStart.status==='urgent'||worstStart.status==='soon'?'var(--warn)':'#818cf8'}">${worstStart.icon} ${worstStart.label}</div>`:''}<div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div></div>`;
     }).join('');
 
     const reportLines=[];
@@ -405,7 +425,12 @@ function render(){
     return`<div class="member-card ${hasBadCutoff?'has-alert':''}" data-id="${member.id}">
       <div class="card-header">
         <div><div class="name">${member.name}</div>${roster?.role?`<div class="role">${roster.role}</div>`:''}</div>
-        <div class="shift-chip ${isOff?'off-today':'on-shift'}">${isOff?'😴 Day Off':todayShift||'On Shift'}</div>
+        ${(()=>{
+          const isAbsent=member.status==='absent';
+          if(isAbsent)return`<div class="shift-chip absent" onclick="toggleStatus('${member.id}','absent')">🚫 OOO/Absent</div>`;
+          if(isOff)return`<div class="shift-chip off-today">😴 Day Off</div>`;
+          return`<div class="shift-chip on-shift" style="cursor:pointer" onclick="toggleStatus('${member.id}','active')">✅ ${todayShift||'On Shift'}</div>`;
+        })()}
       </div>
       ${suppliers.length?`<div class="card-section"><div class="section-title">Suppliers & Cut-off Times</div>${supplierRows}</div>`:''}
       ${reportLines.length?`<div class="card-section"><div class="section-title">📋 Reports Due Today</div>${reportLines.join('')}</div>`:''}
@@ -421,6 +446,7 @@ function render(){
   }).join('');
 
   grid.querySelectorAll('.cutoff-input').forEach(i=>i.onchange=()=>updateCutoff(i.dataset.member,i.dataset.supplier,i.value));
+  grid.querySelectorAll('.start-input').forEach(i=>i.onchange=()=>updateStart(i.dataset.member,i.dataset.supplier,i.value));
   grid.querySelectorAll('.save-btn').forEach(b=>b.onclick=()=>saveMember(b.dataset.id,b.closest('.member-card')));
   grid.querySelectorAll('.del-btn').forEach(b=>b.onclick=()=>deleteMember(b.dataset.id));
 }
@@ -447,8 +473,20 @@ async function updateCutoff(memberId,supplier,ct){
   else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,cutoff_time:ct,unprocessed_count:0});
   loadAll();
 }
+async function updateStart(memberId,supplier,startTime){
+  const ex=orders.find(o=>o.member_id===memberId&&o.supplier_name===supplier);
+  if(ex)await sb.from('supplier_orders').update({start_time:startTime}).eq('id',ex.id);
+  else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,start_time:startTime,cutoff_time:'',unprocessed_count:0});
+  loadAll();
+}
 async function saveMember(id,card){
   await sb.from('members').update({name:card.querySelector('.name-edit').value.trim(),shift:card.querySelector('.shift-edit').value.trim(),assigned_suppliers:card.querySelector('.suppliers-edit').value.trim()}).eq('id',id);
+  loadAll();
+}
+async function toggleStatus(id,current){
+  const todayAU=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
+  const newStatus=current==='absent'?'active':'absent';
+  await sb.from('members').update({status:newStatus,status_date:newStatus==='absent'?todayAU:''}).eq('id',id);
   loadAll();
 }
 async function deleteMember(id){if(!confirm('Remove this member?'))return;await sb.from('members').delete().eq('id',id);loadAll();}

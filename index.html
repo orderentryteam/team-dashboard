@@ -326,7 +326,7 @@ async function loadAll(){
   if(e1||e2){setStatus('Connection error','err');return;}
   members=m||[];orders=o||[];
   const todayAU=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
-  const expired=members.filter(m=>m.status==='absent'&&m.status_date!==todayAU);
+  const expired=members.filter(m=>['absent','ooo'].includes(m.status)&&m.status_date!==todayAU);
   if(expired.length){await Promise.all(expired.map(m=>sb.from('members').update({status:'active',status_date:''}).eq('id',m.id)));members=members.map(m=>expired.find(e=>e.id===m.id)?{...m,status:'active'}:m);}
   setStatus('Live · '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit',second:'2-digit'}),'live');
   updateDayBar();populateShiftFilter();render();checkAlarms();
@@ -426,10 +426,16 @@ function render(){
       <div class="card-header">
         <div><div class="name">${member.name}</div>${roster?.role?`<div class="role">${roster.role}</div>`:''}</div>
         ${(()=>{
-          const isAbsent=member.status==='absent';
-          if(isAbsent)return`<div class="shift-chip absent" onclick="toggleStatus('${member.id}','absent')">🚫 OOO/Absent</div>`;
-          if(isOff)return`<div class="shift-chip off-today">😴 Day Off</div>`;
-          return`<div class="shift-chip on-shift" style="cursor:pointer" onclick="toggleStatus('${member.id}','active')">✅ ${todayShift||'On Shift'}</div>`;
+          const st=member.status||'active';
+          const isOOO=st==='ooo';
+          const isAbsent=st==='absent';
+          const chipClass=isOOO?'absent':isAbsent?'absent':isOff?'off-today':'on-shift';
+          const label=isOOO?'🚫 OOO':isAbsent?'🤒 Absent':isOff?'😴 Day Off':`✅ ${todayShift||'On Shift'}`;
+          return`<select class="status-select" data-id="${member.id}" style="font-size:11px;padding:3px 6px;border-radius:20px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:pointer;font-weight:600;">
+            <option value="active" ${st==='active'?'selected':''}>✅ ${isOff?'On Roster':todayShift||'On Shift'}</option>
+            <option value="ooo" ${isOOO?'selected':''}>🚫 OOO</option>
+            <option value="absent" ${isAbsent?'selected':''}>🤒 Absent</option>
+          </select>`;
         })()}
       </div>
       ${suppliers.length?`<div class="card-section"><div class="section-title">Suppliers & Cut-off Times</div>${supplierRows}</div>`:''}
@@ -447,6 +453,7 @@ function render(){
 
   grid.querySelectorAll('.cutoff-input').forEach(i=>i.onchange=()=>updateCutoff(i.dataset.member,i.dataset.supplier,i.value));
   grid.querySelectorAll('.start-input').forEach(i=>i.onchange=()=>updateStart(i.dataset.member,i.dataset.supplier,i.value));
+  grid.querySelectorAll('.status-select').forEach(s=>s.onchange=()=>setStatus(s.dataset.id,s.value));
   grid.querySelectorAll('.save-btn').forEach(b=>b.onclick=()=>saveMember(b.dataset.id,b.closest('.member-card')));
   grid.querySelectorAll('.del-btn').forEach(b=>b.onclick=()=>deleteMember(b.dataset.id));
 }
@@ -483,10 +490,9 @@ async function saveMember(id,card){
   await sb.from('members').update({name:card.querySelector('.name-edit').value.trim(),shift:card.querySelector('.shift-edit').value.trim(),assigned_suppliers:card.querySelector('.suppliers-edit').value.trim()}).eq('id',id);
   loadAll();
 }
-async function toggleStatus(id,current){
+async function setStatus(id,newStatus){
   const todayAU=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
-  const newStatus=current==='absent'?'active':'absent';
-  await sb.from('members').update({status:newStatus,status_date:newStatus==='absent'?todayAU:''}).eq('id',id);
+  await sb.from('members').update({status:newStatus,status_date:newStatus!=='active'?todayAU:''}).eq('id',id);
   loadAll();
 }
 async function deleteMember(id){if(!confirm('Remove this member?'))return;await sb.from('members').delete().eq('id',id);loadAll();}

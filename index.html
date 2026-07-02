@@ -441,15 +441,19 @@ function render(){
   if(currentTab==='today')filtered=filtered.filter(m=>{
     const r=getRoster(m.name);
     if(!r) return false;
-    // Always show if they have a shift today
+    // Show if they have a shift today
     const todayShift=r.schedule[todayName];
     if(todayShift&&todayShift!=='OFF') return true;
-    // Before 12noon: also show overnight carryovers from yesterday
+    // Before 12noon: check yesterday's overnight shift
     if(auHour<12){
       const yShift=r.schedule[yesterdayName]||'';
       if(yShift&&yShift!=='OFF'){
-        const endTime=(yShift.split('-')[1]||'').toLowerCase();
-        if(endTime.includes('am')) return true; // overnight shift, still working
+        const endPart=(yShift.split('-')[1]||'').toLowerCase().trim();
+        if(endPart.includes('am')){
+          // Parse the end hour — keep showing until that hour passes
+          const endHour=parseInt(endPart)||0;
+          if(auHour<endHour||endHour<=2) return true; // still within shift
+        }
       }
     }
     return false;

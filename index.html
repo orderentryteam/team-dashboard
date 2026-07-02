@@ -123,6 +123,14 @@
   .empty-state{padding:60px 28px;text-align:center;color:var(--muted);}
   footer{padding:12px 28px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);}
   #app{display:none;}
+  .vol-panel{display:none;position:absolute;top:48px;right:120px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;z-index:100;min-width:220px;box-shadow:0 4px 20px rgba(0,0,0,0.15);}
+  .vol-panel.open{display:block;}
+  .vol-title{font-size:12px;font-weight:700;margin-bottom:10px;}
+  .preset-btns{display:flex;gap:8px;margin-bottom:12px;}
+  .preset-btn{flex:1;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font-size:12px;cursor:pointer;font-weight:600;}
+  .preset-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+  .vol-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .vol-slider{width:100%;accent-color:var(--accent);}
 </style>
 </head>
 <body>
@@ -146,8 +154,19 @@
       <div class="sub">Shift monitoring · Cut-off alerts · Schedule</div>
     </div>
     <div class="right-controls">
-      <span id="notifStatus" style="font-size:11px;color:var(--muted);">🔕 Click to enable alarm</span>
+      <span id="notifStatus" style="font-size:11px;color:var(--muted);cursor:pointer;" onclick="toggleNotifications()">🔕 Notifications: OFF</span>
       <button class="alarm-test-btn" onclick="testAlarm()">🔔 Test Alarm</button>
+      <button class="icon-btn" onclick="toggleVolPanel()" title="Alarm settings">🔊</button>
+      <div class="vol-panel" id="volPanel">
+        <div class="vol-title">🔊 Alarm Settings</div>
+        <div class="vol-label">Preset</div>
+        <div class="preset-btns">
+          <button class="preset-btn" id="presetHeadset" onclick="setPreset('headset')">🎧 Headset</button>
+          <button class="preset-btn" id="presetSpeaker" onclick="setPreset('speaker')">📢 Speaker</button>
+        </div>
+        <div class="vol-label">Volume: <span id="volValue">50%</span></div>
+        <input class="vol-slider" id="volSlider" type="range" min="0" max="100" value="50" oninput="setVolume(this.value)">
+      </div>
       <button class="theme-btn" id="themeToggleApp">🌙 Dark mode</button>
       <span id="statusPill" class="pill">Connecting…</span>
       <button class="icon-btn" id="logoutBtn">Sign out</button>
@@ -271,8 +290,37 @@ function getTasks(name,day){if(!name)return null;const n=name.trim();if(TASKS[n]
 
 /* ---- ALARM ---- */
 let audioCtx=null,alarmUnlocked=false,firedAlerts=new Set();
+let alarmVolume=parseFloat(localStorage.getItem('alarmVol')||'0.25');
+
+function toggleVolPanel(){document.getElementById('volPanel').classList.toggle('open');}
+document.addEventListener('click',e=>{const p=document.getElementById('volPanel');if(p&&!p.contains(e.target)&&!e.target.matches('.icon-btn'))p.classList.remove('open');});
+
+function setPreset(mode){
+  alarmVolume=mode==='headset'?0.15:0.6;
+  localStorage.setItem('alarmVol',alarmVolume);
+  document.getElementById('volSlider').value=alarmVolume*100;
+  document.getElementById('volValue').textContent=Math.round(alarmVolume*100)+'%';
+  document.getElementById('presetHeadset').classList.toggle('active',mode==='headset');
+  document.getElementById('presetSpeaker').classList.toggle('active',mode==='speaker');
+}
+function setVolume(val){
+  alarmVolume=val/100;
+  localStorage.setItem('alarmVol',alarmVolume);
+  document.getElementById('volValue').textContent=val+'%';
+  document.getElementById('presetHeadset').classList.remove('active');
+  document.getElementById('presetSpeaker').classList.remove('active');
+}
+function initVolumeUI(){
+  const saved=parseFloat(localStorage.getItem('alarmVol')||'0.25');
+  alarmVolume=saved;
+  const pct=Math.round(saved*100);
+  document.getElementById('volSlider').value=pct;
+  document.getElementById('volValue').textContent=pct+'%';
+  if(pct<=20)document.getElementById('presetHeadset').classList.add('active');
+  else if(pct>=55)document.getElementById('presetSpeaker').classList.add('active');
+}
 function unlockAudio(){if(alarmUnlocked)return;try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();alarmUnlocked=true;document.getElementById('notifStatus').textContent='🔔 Alarm: ON';document.getElementById('notifStatus').style.color='var(--good)';}catch(e){}}
-function playChime(freq,t,dur){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur);}
+function playChime(freq,t,dur){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type='sine';o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(alarmVolume,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur);}
 function playCutoffAlarm(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const t=audioCtx.currentTime;[523.25,659.25,783.99,1046.5,783.99,523.25].forEach((f,i)=>playChime(f,t+i*0.3,1.0));}catch(e){}}
 function playReportAlarm(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const t=audioCtx.currentTime;[[1046.5,0],[880,0.3],[698.46,0.6],[1046.5,1.1],[880,1.4],[698.46,1.7]].forEach(([f,o])=>playChime(f,t+o,0.4));}catch(e){}}
 function testAlarm(){unlockAudio();playCutoffAlarm();document.body.style.outline='6px solid red';setTimeout(()=>document.body.style.outline='',800);}
@@ -301,11 +349,27 @@ function checkAlarms(){
 }
 document.addEventListener('click',unlockAudio);
 
+let notifsEnabled=localStorage.getItem('notifs')==='true';
+function updateNotifStatus(){
+  const el=document.getElementById('notifStatus');
+  if(!el)return;
+  if(notifsEnabled&&Notification.permission==='granted'){el.textContent='🔔 Notifications: ON';el.style.color='var(--good)';}
+  else{el.textContent='🔕 Notifications: OFF';el.style.color='var(--muted)';}
+}
+async function toggleNotifications(){
+  if(notifsEnabled){notifsEnabled=false;localStorage.setItem('notifs','false');updateNotifStatus();return;}
+  if(Notification.permission==='default') await Notification.requestPermission();
+  if(Notification.permission==='granted'){notifsEnabled=true;localStorage.setItem('notifs','true');}
+  else{alert('Notifications blocked. Please allow them in your browser settings.');}
+  updateNotifStatus();
+}
+if(Notification.permission==='granted'&&notifsEnabled) updateNotifStatus();
+
 /* ---- AUTH ---- */
 function setStatus(t,type){const p=document.getElementById('statusPill');p.textContent=t;p.className='pill'+(type?' '+type:'');}
 async function checkSession(){const{data:{session}}=await sb.auth.getSession();session?showApp():showLogin();}
 function showLogin(){document.getElementById('loginScreen').style.display='flex';document.getElementById('app').style.display='none';}
-function showApp(){document.getElementById('loginScreen').style.display='none';document.getElementById('app').style.display='block';loadAll();subscribeRealtime();}
+function showApp(){document.getElementById('loginScreen').style.display='none';document.getElementById('app').style.display='block';loadAll();subscribeRealtime();initVolumeUI();}
 document.getElementById('loginBtn').onclick=async()=>{
   const email=document.getElementById('loginEmail').value.trim();
   const password=document.getElementById('loginPassword').value;

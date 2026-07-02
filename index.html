@@ -265,9 +265,10 @@ const ALARM_RULES={
   'Hazel':     {'Bodiam':{cutoffDays:[],startDays:['Mon']}},
   'Nisa':      {'Bodiam':{cutoffDays:[],startDays:['Fri']}},
   'Marie':     {'Bodiam':{cutoffDays:[],startDays:[]}},
-  'Renilyn':   {'Bodiam':{cutoffDays:[],startDays:[]}},
+  'Renilyn':   {'Bodiam':{cutoffDays:[],startDays:[]},'Hillheads':{cutoffDays:['Tue','Wed','Thu','Fri','Sat'],startDays:['Tue','Wed','Thu','Fri','Sat']}},
   'Trixy':     {'Bodiam':{cutoffDays:[],startDays:[]}},
   'Ellen':     {'Bodiam':{cutoffDays:[],startDays:[]}},
+  'Eden':      {'Hillheads':{cutoffDays:['Mon'],startDays:['Mon']}},
 };
 
 // Member-specific start time overrides (overrides DEFAULT_START_TIMES)
@@ -454,7 +455,7 @@ async function loadAll(){
   if(e1||e2){setStatus('Connection error','err');return;}
   members=m||[];orders=o||[];
   const todayAU=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
-  const expired=members.filter(m=>['absent','ooo'].includes(m.status)&&m.status_date!==todayAU);
+  const expired=members.filter(m=>(['absent','ooo'].includes(m.status)||m.status?.startsWith('covered:'))&&m.status_date!==todayAU);
   if(expired.length){await Promise.all(expired.map(m=>sb.from('members').update({status:'active',status_date:''}).eq('id',m.id)));members=members.map(m=>expired.find(e=>e.id===m.id)?{...m,status:'active'}:m);}
   setStatus('Live · '+new Date().toLocaleTimeString('en-AU',{timeZone:'Australia/Sydney',hour:'2-digit',minute:'2-digit',second:'2-digit'}),'live');
   updateDayBar();populateShiftFilter();render();checkAlarms();
@@ -463,7 +464,7 @@ async function ensureOrderRows(memberId,suppliers){
   const existing=orders.filter(o=>o.member_id===memberId).map(o=>o.supplier_name);
   const missing=suppliers.filter(s=>!existing.includes(s));
   if(!missing.length)return;
-  await sb.from('supplier_orders').insert(missing.map(s=>({member_id:memberId,supplier_name:s,unprocessed_count:0,cutoff_time:''})));
+  await sb.from('supplier_orders').insert(missing.map(s=>({member_id:memberId,supplier_name:s,unprocessed_count:0,cutoff_time:'',cover_by:''})));
 }
 
 /* ---- DAY BAR ---- */
@@ -541,6 +542,9 @@ function render(){
       const{status,label,icon}=getCutoffStatus(ct);
       const rowClass=`supplier-row ${status==='none'?'':status==='passed'?'passed':status}`;
       const ctDisplay=isSpecial?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${ct||'None today'}</span>`:`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${ct}" data-member="${member.id}" data-supplier="${sup}">`;
+      const coverBy=row?.cover_by||'';
+      const memberOptions=members.filter(m=>m.id!==member.id).map(m=>`<option value="${m.name}" ${coverBy===m.name?'selected':''}>${m.name}</option>`).join('');
+      const coverDisplay=`<div class="cutoff-row" style="margin-top:4px;"><span class="cutoff-label">Cover:</span><select class="cover-select" data-member="${member.id}" data-supplier="${sup}" style="font-size:11px;background:transparent;border:none;border-bottom:1px dashed var(--line);color:${coverBy?'#818cf8':'var(--muted)'};outline:none;cursor:pointer;"><option value="">— none —</option>${memberOptions}</select>${coverBy?`<span style="font-size:10px;color:#818cf8;margin-left:4px;">🔄</span>`:''}</div>`;
       // Start time
       const isSpecialStart=SPECIAL_STARTS[sup]!==undefined;
       const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(row?(row.start_time||''):'');
@@ -552,7 +556,7 @@ function render(){
       const startDisplay=isSpecialStart
         ?`<div class="cutoff-row"><span style="color:#818cf8;font-size:11px;">🔵 Start: ${startTimes.length?startTimes.join(' & '):'None today'} <span style="opacity:0.6;font-size:9px">(auto)</span></span></div>`
         :`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${defaultStart}" data-member="${member.id}" data-supplier="${sup}"></div>`;
-      return`<div class="${rowClass}"><div style="flex:1"><div class="sup-name">${sup}</div>${startDisplay}<div class="cutoff-row">${ctDisplay}</div></div><div class="time-info">${worstStart?`<div style="font-size:10px;font-weight:600;color:${worstStart.status==='urgent'||worstStart.status==='soon'?'var(--warn)':'#818cf8'}">${worstStart.icon} ${worstStart.label}</div>`:''}<div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div></div>`;
+      return`<div class="${rowClass}"><div style="flex:1"><div class="sup-name">${sup}</div>${startDisplay}<div class="cutoff-row">${ctDisplay}</div>${coverDisplay}</div><div class="time-info">${worstStart?`<div style="font-size:10px;font-weight:600;color:${worstStart.status==='urgent'||worstStart.status==='soon'?'var(--warn)':'#818cf8'}">${worstStart.icon} ${worstStart.label}</div>`:''}<div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div></div>`;
     }).join('');
 
     const reportLines=[];
@@ -582,11 +586,19 @@ function render(){
           const isAbsent=st==='absent';
           const chipClass=isOOO?'absent':isAbsent?'absent':isOff?'off-today':'on-shift';
           const label=isOOO?'🚫 OOO':isAbsent?'🤒 Absent':isOff?'😴 Day Off':`✅ ${todayShift||'On Shift'}`;
+          const coverOptions=members.filter(m=>m.id!==member.id).map(m=>{
+            const cv=st.startsWith('covered:')?st.replace('covered:','').trim():'';
+            return`<option value="covered:${m.name}" ${cv===m.name?'selected':''}>🔄 Covered by: ${m.name}</option>`;
+          }).join('');
+          const isCovered=st.startsWith('covered:');
+          const coverName=isCovered?st.replace('covered:','').trim():'';
           return`<select class="status-select" data-id="${member.id}" style="font-size:11px;padding:3px 6px;border-radius:20px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:pointer;font-weight:600;">
             <option value="active" ${st==='active'?'selected':''}>✅ ${isOff?'On Roster':todayShift||'On Shift'}</option>
             <option value="ooo" ${isOOO?'selected':''}>🚫 OOO</option>
             <option value="absent" ${isAbsent?'selected':''}>🤒 Absent</option>
-          </select>`;
+            <optgroup label="── Covered by ──">${coverOptions}</optgroup>
+          </select>
+          ${isCovered?`<div style="font-size:10px;color:#818cf8;margin-top:3px;">🔄 Covered by ${coverName}</div>`:''}`;
         })()}
       </div>
       ${suppliers.length?`<div class="card-section"><div class="section-title">Suppliers & Cut-off Times</div>${supplierRows}</div>`:''}
@@ -604,6 +616,7 @@ function render(){
 
   grid.querySelectorAll('.cutoff-input').forEach(i=>i.onchange=()=>updateCutoff(i.dataset.member,i.dataset.supplier,i.value));
   grid.querySelectorAll('.start-input').forEach(i=>i.onchange=()=>updateStart(i.dataset.member,i.dataset.supplier,i.value));
+  grid.querySelectorAll('.cover-select').forEach(s=>s.onchange=()=>updateCover(s.dataset.member,s.dataset.supplier,s.value));
   grid.querySelectorAll('.status-select').forEach(s=>s.onchange=()=>setMemberStatus(s.dataset.id,s.value));
   grid.querySelectorAll('.save-btn').forEach(b=>b.onclick=()=>saveMember(b.dataset.id,b.closest('.member-card')));
   grid.querySelectorAll('.del-btn').forEach(b=>b.onclick=()=>deleteMember(b.dataset.id));
@@ -629,6 +642,12 @@ async function updateCutoff(memberId,supplier,ct){
   const ex=orders.find(o=>o.member_id===memberId&&o.supplier_name===supplier);
   if(ex)await sb.from('supplier_orders').update({cutoff_time:ct}).eq('id',ex.id);
   else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,cutoff_time:ct,unprocessed_count:0});
+  loadAll();
+}
+async function updateCover(memberId,supplier,coverBy){
+  const ex=orders.find(o=>o.member_id===memberId&&o.supplier_name===supplier);
+  if(ex)await sb.from('supplier_orders').update({cover_by:coverBy}).eq('id',ex.id);
+  else await sb.from('supplier_orders').insert({member_id:memberId,supplier_name:supplier,cover_by:coverBy,cutoff_time:'',unprocessed_count:0});
   loadAll();
 }
 async function updateStart(memberId,supplier,startTime){

@@ -453,7 +453,7 @@ function render(){
 
   grid.querySelectorAll('.cutoff-input').forEach(i=>i.onchange=()=>updateCutoff(i.dataset.member,i.dataset.supplier,i.value));
   grid.querySelectorAll('.start-input').forEach(i=>i.onchange=()=>updateStart(i.dataset.member,i.dataset.supplier,i.value));
-  grid.querySelectorAll('.status-select').forEach(s=>s.onchange=()=>setStatus(s.dataset.id,s.value));
+  grid.querySelectorAll('.status-select').forEach(s=>s.onchange=()=>setMemberStatus(s.dataset.id,s.value));
   grid.querySelectorAll('.save-btn').forEach(b=>b.onclick=()=>saveMember(b.dataset.id,b.closest('.member-card')));
   grid.querySelectorAll('.del-btn').forEach(b=>b.onclick=()=>deleteMember(b.dataset.id));
 }
@@ -490,7 +490,7 @@ async function saveMember(id,card){
   await sb.from('members').update({name:card.querySelector('.name-edit').value.trim(),shift:card.querySelector('.shift-edit').value.trim(),assigned_suppliers:card.querySelector('.suppliers-edit').value.trim()}).eq('id',id);
   loadAll();
 }
-async function setStatus(id,newStatus){
+async function setMemberStatus(id,newStatus){
   const todayAU=new Date().toLocaleDateString('en-AU',{timeZone:'Australia/Sydney'});
   await sb.from('members').update({status:newStatus,status_date:newStatus!=='active'?todayAU:''}).eq('id',id);
   loadAll();

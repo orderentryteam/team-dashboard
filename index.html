@@ -361,6 +361,25 @@ const ROSTER={
 };
 function getRoster(name){if(!name)return null;const n=name.trim();if(ROSTER[n])return ROSTER[n];const lc=n.toLowerCase();for(const[k,v]of Object.entries(ROSTER))if(k.toLowerCase()===lc)return v;return null;}
 
+// Returns the 'effective' day for a member — yesterday if their overnight shift is still running
+function getEffectiveDay(memberName){
+  const auH=nowAU().getHours();
+  if(auH>=12) return DAYS[nowAU().getDay()]; // after noon: today
+  const r=getRoster(memberName);
+  if(!r) return DAYS[nowAU().getDay()];
+  const yIdx=(nowAU().getDay()+6)%7;
+  const yName=DAYS[yIdx];
+  const yShift=r.schedule[yName]||'';
+  if(yShift&&yShift!=='OFF'){
+    const endPart=(yShift.split('-')[1]||'').toLowerCase().trim();
+    if(endPart.includes('am')){
+      const endHour=parseInt(endPart)||0;
+      if(auH<endHour||endHour<=2) return yName; // still on yesterday's shift
+    }
+  }
+  return DAYS[nowAU().getDay()];
+}
+
 const TASKS={
   'Krista':{Mon:[{t:'1:00-5:30',s:'Adams'},{t:'5:30-6:30',s:'Break',b:true},{t:'6:30-9:00',s:'Heritage / Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Tue:[{t:'1:00-5:30',s:'Adams'},{t:'5:30-6:30',s:'Break',b:true},{t:'6:30-9:00',s:'Heritage / Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Thu:[{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Fri:[{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}],Sat:[{t:'1:00-7:00',s:'Adams'},{t:'7:00-9:00',s:'Bodiam'},{t:'9:00-10:00',s:'Heritage'}]},
   'Ellen':{Mon:[{t:'3:00-5:30',s:'Bodiam'},{t:'5:30-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:30-11:30',s:'Mybutcher'},{t:'11:30-12:00',s:'Tassie'}],Wed:[{t:'3:00-5:00',s:'Adams'},{t:'5:00-9:00',s:'Heritage'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],Thu:[{t:'3:00-5:30',s:'Bodiam'},{t:'5:30-9:00',s:'Adams'},{t:'9:00-10:00',s:'Break',b:true},{t:'10:00-12:00',s:'Tassie'}],Fri:[{t:'3:00-4:30',s:'Bodiam'},{t:'4:30-9:30',s:'Adams'},{t:'9:30-10:30',s:'Break',b:true},{t:'10:30-12:00',s:'Tassie'}],Sat:[{t:'1:00-3:00',s:'Bodiam'},{t:'3:00-5:00',s:'Adams'},{t:'5:00-6:00',s:'Break',b:true},{t:'6:00-9:30',s:'Adams'},{t:'9:30-10:00',s:'Heritage'}]},
@@ -419,7 +438,8 @@ function checkAlarms(){
   orders.forEach(o=>{
     const mem=members.find(m=>m.id===o.member_id);
     const r=mem?getRoster(mem.name):null;
-    const todayShiftCheck=r?r.schedule[todayName]:'';
+    const memEffDay=mem?getEffectiveDay(mem.name):todayName;
+    const todayShiftCheck=r?r.schedule[memEffDay]:'';
     const isOffToday=!todayShiftCheck||todayShiftCheck==='OFF';
     if(isOffToday)return; // don't alarm on off days
     const isSpecial=SPECIAL_CUTOFFS[o.supplier_name]!==undefined;
@@ -585,9 +605,10 @@ function render(){
     const supplierRows=suppliers.map(sup=>{
       const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);
       const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;
-      const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?(row.cutoff_time||''):'');
+      const effDay=getEffectiveDay(member.name);
+      const ct=isSpecial?(SPECIAL_CUTOFFS[sup][effDay]||''):(row?(row.cutoff_time||''):'');
       const{status,label,icon}=getCutoffStatus(ct);
-      const alarmAllowed=canFireCutoffAlarm(member.name,sup,todayName);
+      const alarmAllowed=canFireCutoffAlarm(member.name,sup,effDay);
       const rowClass=`supplier-row ${status==='none'?'':status==='passed'?'passed':(!alarmAllowed&&status==='bad'?'passed':status)}`;
       const ctDisplay=isSpecial?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${ct||'None today'}</span>`:`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${ct}" data-member="${member.id}" data-supplier="${sup}">`;
       const coverBy=row?.cover_by||'';
@@ -597,7 +618,7 @@ function render(){
       const isSpecialStart=SPECIAL_STARTS[sup]!==undefined;
       const dbStart=row?.start_time||'';
       const defaultStart=!isSpecialStart?(dbStart||getMemberStartTime(member.name,sup)||''):'';
-      const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(defaultStart||'');
+      const startRaw=isSpecialStart?SPECIAL_STARTS[sup][effDay]:(defaultStart||'');
       const startTimes=Array.isArray(startRaw)?startRaw:(startRaw?[startRaw]:[]);
       const startStatuses=startTimes.map(t=>({time:t,...getStartStatus(t)}));
       const worstStart=startStatuses.find(s=>s.status==='urgent')||startStatuses.find(s=>s.status==='soon')||startStatuses[0];
@@ -628,7 +649,8 @@ function render(){
 
     const taskRows=tasks?tasks.map(tk=>`<div class="task-row ${tk.b?'is-break':''}"><span class="task-time">${tk.t}</span><span class="task-name">${tk.s}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">No breakdown for today</div>';
 
-    const hasBadCutoff=!isOff&&suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad'&&canFireCutoffAlarm(member.name,sup,todayName);});
+    const effDayCard=getEffectiveDay(member.name);
+    const hasBadCutoff=!isOff&&suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSp=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSp?(SPECIAL_CUTOFFS[sup][effDayCard]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad'&&canFireCutoffAlarm(member.name,sup,effDayCard);});
 
     return`<div class="member-card ${hasBadCutoff?'has-alert':''}" data-id="${member.id}">
       <div class="card-header">

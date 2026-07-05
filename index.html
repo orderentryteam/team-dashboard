@@ -361,10 +361,11 @@ const ROSTER={
 };
 function getRoster(name){if(!name)return null;const n=name.trim();if(ROSTER[n])return ROSTER[n];const lc=n.toLowerCase();for(const[k,v]of Object.entries(ROSTER))if(k.toLowerCase()===lc)return v;return null;}
 
-// Returns the 'effective' day for a member — yesterday if their overnight shift is still running
+// Before 12noon: if yesterday had an overnight shift, use yesterday's rules
+// After 12noon: always today — hard reset for everyone
 function getEffectiveDay(memberName){
   const auH=nowAU().getHours();
-  if(auH>=12) return DAYS[nowAU().getDay()]; // after noon: today
+  if(auH>=12) return DAYS[nowAU().getDay()];
   const r=getRoster(memberName);
   if(!r) return DAYS[nowAU().getDay()];
   const yIdx=(nowAU().getDay()+6)%7;
@@ -372,10 +373,7 @@ function getEffectiveDay(memberName){
   const yShift=r.schedule[yName]||'';
   if(yShift&&yShift!=='OFF'){
     const endPart=(yShift.split('-')[1]||'').toLowerCase().trim();
-    if(endPart.includes('am')){
-      const endHour=parseInt(endPart)||0;
-      if(auH<endHour||endHour<=2) return yName; // still on yesterday's shift
-    }
+    if(endPart.includes('am')) return yName; // overnight shift — use yesterday until noon
   }
   return DAYS[nowAU().getDay()];
 }
@@ -559,16 +557,12 @@ function render(){
     // Show if they have a shift today
     const todayShift=r.schedule[todayName];
     if(todayShift&&todayShift!=='OFF') return true;
-    // Before 12noon: check yesterday's overnight shift
+    // Before 12noon: show anyone whose yesterday shift was overnight
     if(auHour<12){
       const yShift=r.schedule[yesterdayName]||'';
       if(yShift&&yShift!=='OFF'){
         const endPart=(yShift.split('-')[1]||'').toLowerCase().trim();
-        if(endPart.includes('am')){
-          // Parse the end hour — keep showing until that hour passes
-          const endHour=parseInt(endPart)||0;
-          if(auHour<endHour||endHour<=2) return true; // still within shift
-        }
+        if(endPart.includes('am')) return true; // overnight — show until noon
       }
     }
     return false;

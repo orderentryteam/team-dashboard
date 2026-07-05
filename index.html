@@ -590,10 +590,10 @@ function render(){
       const coverDisplay=`<div class="cutoff-row" style="margin-top:4px;"><span class="cutoff-label">Cover:</span><select class="cover-select" data-member="${member.id}" data-supplier="${sup}" style="font-size:11px;background:transparent;border:none;border-bottom:1px dashed var(--line);color:${coverBy?'#818cf8':'var(--muted)'};outline:none;cursor:pointer;"><option value="">— none —</option>${memberOptions}</select>${coverBy?`<span style="font-size:10px;color:#818cf8;margin-left:4px;">🔄</span>`:''}</div>`;
       // Start time
       const isSpecialStart=SPECIAL_STARTS[sup]!==undefined;
-      const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(row?(row.start_time||''):'');
-      const startTimes=Array.isArray(startRaw)?startRaw:(startRaw?[startRaw]:[]);
       const dbStart=row?.start_time||'';
       const defaultStart=!isSpecialStart?(dbStart||getMemberStartTime(member.name,sup)||''):'';
+      const startRaw=isSpecialStart?SPECIAL_STARTS[sup][todayName]:(defaultStart||'');
+      const startTimes=Array.isArray(startRaw)?startRaw:(startRaw?[startRaw]:[]);
       const startStatuses=startTimes.map(t=>({time:t,...getStartStatus(t)}));
       const worstStart=startStatuses.find(s=>s.status==='urgent')||startStatuses.find(s=>s.status==='soon')||startStatuses[0];
       const startDisplay=isSpecialStart

@@ -268,6 +268,7 @@ const ALARM_RULES={
   'Renilyn':   {'Bodiam':{cutoffDays:[],startDays:[]},'Hillheads':{cutoffDays:['Tue','Wed','Thu','Fri','Sat'],startDays:['Tue','Wed','Thu','Fri','Sat']}},
   'Trixy':     {'Bodiam':{cutoffDays:[],startDays:[]}},
   'Ellen':     {'Bodiam':{cutoffDays:[],startDays:[]}},
+  'Jade':      {'Oceanmade':{cutoffDays:[],startDays:[]}},
   'Eden':      {'Hillheads':{cutoffDays:['Mon'],startDays:['Mon']}},
 };
 
@@ -557,7 +558,8 @@ function render(){
       const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;
       const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?(row.cutoff_time||''):'');
       const{status,label,icon}=getCutoffStatus(ct);
-      const rowClass=`supplier-row ${status==='none'?'':status==='passed'?'passed':status}`;
+      const alarmAllowed=canFireCutoffAlarm(member.name,sup,todayName);
+      const rowClass=`supplier-row ${status==='none'?'':status==='passed'?'passed':(!alarmAllowed&&status==='bad'?'passed':status)}`;
       const ctDisplay=isSpecial?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${ct||'None today'}</span>`:`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${ct}" data-member="${member.id}" data-supplier="${sup}">`;
       const coverBy=row?.cover_by||'';
       const memberOptions=members.filter(m=>m.id!==member.id).map(m=>`<option value="${m.name}" ${coverBy===m.name?'selected':''}>${m.name}</option>`).join('');
@@ -592,7 +594,7 @@ function render(){
 
     const taskRows=tasks?tasks.map(tk=>`<div class="task-row ${tk.b?'is-break':''}"><span class="task-time">${tk.t}</span><span class="task-name">${tk.s}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">No breakdown for today</div>';
 
-    const hasBadCutoff=suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad';});
+    const hasBadCutoff=suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad'&&canFireCutoffAlarm(member.name,sup,todayName);});
 
     return`<div class="member-card ${hasBadCutoff?'has-alert':''}" data-id="${member.id}">
       <div class="card-header">

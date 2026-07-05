@@ -250,14 +250,13 @@ function getCutoffStatus(ct){
 
 /* ---- SPECIAL CUT-OFFS ---- */
 const SPECIAL_CUTOFFS={
-  'Dales':    {Mon:'03:00',Tue:'02:00',Wed:'',Thu:'02:00',Fri:'',Sat:'',Sun:''},
   'Farmford': {Mon:'08:00',Tue:'08:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'09:00',Sun:''},
   'Adams':    {Mon:'08:30',Tue:'08:30',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'09:00',Sun:''},
 };
 
 /* ---- START TIMES ---- */
 const DEFAULT_START_TIMES={'Fruitique':'21:00','Gamekeepers':'20:00','Oceanmade':'17:00','Coastal Fresh':'15:00','Fussy Fruit':'19:30','Tim and Terry':'02:00','Tim & Terry':'02:00','MyButcher':'10:30','Mybutcher':'10:30','LJ':'18:00','Diamond':'22:30','Bodiam':'01:00','Hillheads':'08:00','Greenpoint':'11:00','MCB':'07:00','Heritage':'05:00','Farmford':'04:00','Clover':'06:00','Adams':'01:30','Adams Wholesale UK':'01:30'};
-const SPECIAL_STARTS={'Fisher and Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Fisher & Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Henderson OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Hendersons OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Henderson INV':{Mon:'04:30',Tue:'04:30',Wed:'',Thu:'04:30',Fri:'03:00',Sat:'',Sun:''},'Dales':{Mon:['01:00','20:00'],Tue:'',Wed:'20:00',Thu:'',Fri:'',Sat:'',Sun:''},'Tassie FineFood':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie FineFoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie Finefoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'}};
+const SPECIAL_STARTS={'Fisher and Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Fisher & Woods':{Mon:'',Tue:'05:00',Wed:'05:00',Thu:'04:00',Fri:'04:00',Sat:'04:00',Sun:''},'Henderson OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Hendersons OE':{Mon:'16:00',Tue:'16:00',Wed:'',Thu:'16:00',Fri:'18:00',Sat:'',Sun:''},'Henderson INV':{Mon:'04:30',Tue:'04:30',Wed:'',Thu:'04:30',Fri:'03:00',Sat:'',Sun:''},'Dales':{Mon:'20:00',Tue:'',Wed:'20:00',Thu:'',Fri:'',Sat:'',Sun:''},'Tassie FineFood':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie FineFoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'},'Tassie Finefoods':{Mon:'09:00',Tue:'09:00',Wed:'09:00',Thu:'09:00',Fri:'09:00',Sat:'',Sun:'14:00'}};
 // Which days each member gets alarms for a supplier (show always, alarm only on listed days)
 const SUPPLIER_DAYS={
   'Eden':      {'Hillheads':['Mon']},
@@ -276,15 +275,15 @@ const SUPPLIER_DAYS={
 // cutoffDays: days to fire cutoff alarm ([] = never)
 // startDays:  days to fire start alarm  ([] = never, null = all workdays)
 const ALARM_RULES={
-  'Ailene':    {'Bodiam':{cutoffDays:[],startDays:['Mon','Tue','Wed','Thu','Sun']}},
+  'Ailene':    {'Bodiam':{cutoffDays:[],startDays:['Mon','Tue','Wed','Thu','Sun']},'Dales':{cutoffDays:[],startDays:['Mon']}},
   'Hazel':     {'Bodiam':{cutoffDays:[],startDays:['Mon']}},
-  'Nisa':      {'Bodiam':{cutoffDays:[],startDays:['Fri']}},
-  'Marie':     {'Bodiam':{cutoffDays:[],startDays:[]}},
+  'Nisa':      {'Bodiam':{cutoffDays:[],startDays:['Fri']},'Dales':{cutoffDays:['Mon','Wed'],startDays:['Mon']}},
+  'Marie':     {'Bodiam':{cutoffDays:[],startDays:[]},'Dales':{cutoffDays:[],startDays:['Mon']}},
   'Renilyn':   {'Bodiam':{cutoffDays:[],startDays:[]},'Hillheads':{cutoffDays:['Tue','Wed','Thu','Fri','Sat'],startDays:['Tue','Wed','Thu','Fri','Sat']}},
   'Trixy':     {'Bodiam':{cutoffDays:[],startDays:[]}},
   'Ellen':     {'Bodiam':{cutoffDays:[],startDays:[]}},
-  'Jade':      {'Oceanmade':{cutoffDays:[],startDays:[]}},
-  'Eden':      {'Hillheads':{cutoffDays:['Mon'],startDays:['Mon']}},
+  'Jade':      {'Oceanmade':{cutoffDays:[],startDays:[]},'Dales':{cutoffDays:[],startDays:['Mon']}},
+  'Eden':      {'Hillheads':{cutoffDays:['Mon'],startDays:['Mon']}},'Vanessa':   {'Dales':{cutoffDays:[],startDays:['Mon']}},
 };
 
 // Member-specific start time overrides (overrides DEFAULT_START_TIMES)

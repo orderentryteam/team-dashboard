@@ -417,6 +417,11 @@ function testAlarm(){unlockAudio();playCutoffAlarm();document.body.style.outline
 function checkAlarms(){
   const todayName=DAYS[nowAU().getDay()];
   orders.forEach(o=>{
+    const mem=members.find(m=>m.id===o.member_id);
+    const r=mem?getRoster(mem.name):null;
+    const todayShiftCheck=r?r.schedule[todayName]:'';
+    const isOffToday=!todayShiftCheck||todayShiftCheck==='OFF';
+    if(isOffToday)return; // don't alarm on off days
     const isSpecial=SPECIAL_CUTOFFS[o.supplier_name]!==undefined;
     const ct=isSpecial?(SPECIAL_CUTOFFS[o.supplier_name][todayName]||''):(o.cutoff_time||'');
     if(!ct)return;
@@ -623,7 +628,7 @@ function render(){
 
     const taskRows=tasks?tasks.map(tk=>`<div class="task-row ${tk.b?'is-break':''}"><span class="task-time">${tk.t}</span><span class="task-name">${tk.s}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">No breakdown for today</div>';
 
-    const hasBadCutoff=suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad'&&canFireCutoffAlarm(member.name,sup,todayName);});
+    const hasBadCutoff=!isOff&&suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSpecial=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSpecial?(SPECIAL_CUTOFFS[sup][todayName]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad'&&canFireCutoffAlarm(member.name,sup,todayName);});
 
     return`<div class="member-card ${hasBadCutoff?'has-alert':''}" data-id="${member.id}">
       <div class="card-header">

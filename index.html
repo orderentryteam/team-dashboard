@@ -221,11 +221,26 @@ function nowAU(){
   const h=get('hour');return new Date(get('year'),get('month')-1,get('day'),h===24?0:h,get('minute'),get('second'));
 }
 
+/* ---- AU MINUTES HELPER ---- */
+function auMinutes(){
+  const p=new Intl.DateTimeFormat('en',{timeZone:'Australia/Sydney',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date());
+  const h=parseInt(p.find(x=>x.type==='hour')?.value||'0');
+  const m=parseInt(p.find(x=>x.type==='minute')?.value||'0');
+  return h*60+m;
+}
+function timeDiffMins(targetHHMM){
+  const[h,m]=targetHHMM.split(':').map(Number);
+  const targetMins=h*60+m;
+  let diff=targetMins-auMinutes();
+  if(diff<-720)diff+=1440;
+  if(diff>720)diff-=1440;
+  return diff;
+}
+
 /* ---- CUT-OFF STATUS ---- */
 function getCutoffStatus(ct){
   if(!ct)return{status:'none',label:'Set cut-off',icon:'⚪'};
-  const now=nowAU();const[h,m]=ct.split(':').map(Number);
-  const c=nowAU();c.setHours(h,m,0,0);const diff=(c-now)/60000;
+  const diff=timeDiffMins(ct);
   if(diff<0)return{status:'passed',label:'Passed!',icon:'🔴'};
   if(diff<=30)return{status:'bad',label:`${Math.round(diff)}min left`,icon:'🔴'};
   if(diff<=60)return{status:'warn',label:`${Math.round(diff)}min left`,icon:'🟡'};
@@ -575,7 +590,12 @@ function render(){
       const startDisplay=isSpecialStart
         ?`<div class="cutoff-row"><span style="color:#818cf8;font-size:11px;">🔵 Start: ${startTimes.length?startTimes.join(' & '):'None today'} <span style="opacity:0.6;font-size:9px">(auto)</span></span></div>`
         :`<div class="cutoff-row"><span class="cutoff-label">Start:</span><input class="start-input" type="time" value="${defaultStart}" data-member="${member.id}" data-supplier="${sup}"></div>`;
-      return`<div class="${rowClass}"><div style="flex:1"><div class="sup-name">${sup}</div>${startDisplay}<div class="cutoff-row">${ctDisplay}</div>${coverDisplay}</div><div class="time-info">${worstStart?`<div style="font-size:10px;font-weight:600;color:${worstStart.status==='urgent'||worstStart.status==='soon'?'var(--warn)':'#818cf8'}">${worstStart.icon} ${worstStart.label}</div>`:''}<div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div></div>`;
+      return`<div class="${rowClass}"><div style="flex:1"><div class="sup-name">${sup}</div>${startDisplay}<div class="cutoff-row">${ctDisplay}</div>${coverDisplay}</div><div class="time-info">${worstStart?`<div style="font-size:10px;font-weight:700;color:${
+  worstStart.status==='urgent'?'var(--bad)':
+  worstStart.status==='soon'?'var(--warn)':
+  worstStart.status==='started'?'var(--good)':
+  worstStart.status==='done'?'var(--muted)':
+  '#818cf8'}">${worstStart.icon} ${worstStart.label}</div>`:''}<div class="status-icon">${icon}</div><div class="time-left ${status==='none'?'':status}">${label}</div></div></div>`;
     }).join('');
 
     const reportLines=[];

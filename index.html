@@ -388,12 +388,14 @@ function isActivelyWorking(memberName){
     const startM=toMins(parts[0]),endM=toMins(parts[1]);
     if(isYesterday){
       if(endM<startM){ // overnight crossing midnight
-        if(auH<12)return true; // 12noon rule — keep showing until noon
-        return nowMins<endM;
+        return nowMins<endM; // exact: only if still within window
       }
       return false;
     } else {
-      if(endM<startM)return nowMins>=startM||nowMins<endM; // overnight
+      if(endM<startM){ // overnight shift (e.g. 10:30pm-7:30am)
+        if(auH<12) return false; // before noon = shift hasn't started yet today
+        return nowMins>=startM; // after noon = only show after start time
+      }
       return nowMins>=startM&&nowMins<endM;
     }
   }
@@ -563,7 +565,13 @@ function updateDayBar(){
   const ukTime=new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit'});
   document.getElementById('worldClocks').textContent=`🇵🇭 PH: ${phTime}   🇬🇧 UK: ${ukTime}`;
   const onShift=members.filter(m=>isActivelyWorking(m.name)).length;
-  const offToday=members.length-onShift;
+  // Only count as OFF if their roster genuinely shows OFF today (not just not started yet)
+  const offToday=members.filter(m=>{
+    const r=getRoster(m.name);
+    if(!r)return false;
+    const todayS=r.schedule[todayName];
+    return !todayS||todayS==='OFF';
+  }).length;
   let alerts=0,warns=0;
   orders.forEach(o=>{const ct=(SPECIAL_CUTOFFS[o.supplier_name]?SPECIAL_CUTOFFS[o.supplier_name][todayName]:null)||o.cutoff_time||'';const{status}=getCutoffStatus(ct);if(status==='bad')alerts++;else if(status==='warn')warns++;});
   document.getElementById('summaryPills').innerHTML=`<div class="sum-pill on">✅ ${onShift} on shift</div><div class="sum-pill off">😴 ${offToday} off today</div>${warns>0?`<div class="sum-pill warn">🟡 ${warns} near cut-off`:''}${alerts>0?`<div class="sum-pill alert">🔴 ${alerts} urgent!</div>`:''}`;
@@ -588,7 +596,27 @@ function render(){
   const auHour=auNow.getHours();
   const yIdx=(auNow.getDay()+6)%7;
   const yesterdayName=DAYS[yIdx];
-  if(currentTab==='today')filtered=filtered.filter(m=>isActivelyWorking(m.name));
+  if(currentTab==='today')filtered=filtered.filter(m=>{
+    if(!isActivelyWorking(m.name)){
+      // Still show if they have a shift today (just not started or already overnight)
+      const r=getRoster(m.name);
+      if(!r)return false;
+      const auH=nowAU().getHours();
+      const yIdx=(nowAU().getDay()+6)%7;
+      const yName=DAYS[yIdx];
+      const todayS=r.schedule[todayName];
+      if(todayS&&todayS!=='OFF') return true;
+      if(auH<12){
+        const yShift=r.schedule[yName]||'';
+        if(yShift&&yShift!=='OFF'){
+          const endPart=(yShift.split('-')[1]||'').toLowerCase().trim();
+          if(endPart.includes('am')) return true;
+        }
+      }
+      return false;
+    }
+    return true;
+  });
   const grid=document.getElementById('grid');
   if(currentTab==='roster'){renderRoster(filtered,todayName,grid);return;}
   if(!filtered.length){grid.innerHTML='<div class="empty-state">No members match.</div>';return;}

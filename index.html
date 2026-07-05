@@ -372,39 +372,32 @@ function isActivelyWorking(memberName){
   const todayN=DAYS[nowAU().getDay()];
   const yIdx=(nowAU().getDay()+6)%7;
   const yName=DAYS[yIdx];
+  function toMins(s){
+    s=s.trim().toLowerCase();
+    const isPM=s.includes('pm'),isAM=s.includes('am');
+    s=s.replace('am','').replace('pm','').trim();
+    let[h,m]=(s.includes(':')?s.split(':'):[s,'0']).map(Number);
+    if(isPM&&h!==12)h+=12;
+    if(isAM&&h===12)h=0;
+    return h*60+(m||0);
+  }
   function parseShift(shiftStr,isYesterday){
     if(!shiftStr||shiftStr==='OFF')return false;
     const parts=shiftStr.split('-');
     if(parts.length<2)return false;
-    const startStr=parts[0].trim().toLowerCase();
-    const endStr=parts[1].trim().toLowerCase();
-    function toMins(s){
-      const isPM=s.includes('pm');
-      const isAM=s.includes('am');
-      s=s.replace('am','').replace('pm','').trim();
-      let[h,m]=(s.includes(':')?s.split(':'):[s,'0']).map(Number);
-      if(isPM&&h!==12)h+=12;
-      if(isAM&&h===12)h=0;
-      return h*60+(m||0);
-    }
-    const startM=toMins(startStr);
-    const endM=toMins(endStr);
+    const startM=toMins(parts[0]),endM=toMins(parts[1]);
     if(isYesterday){
-      // Yesterday's shift crosses midnight — check if we're still in it
-      if(endM<startM){ // overnight: ends after midnight
-        return nowMins<endM; // we're in the early morning portion
+      if(endM<startM){ // overnight crossing midnight
+        if(auH<12)return true; // 12noon rule — keep showing until noon
+        return nowMins<endM;
       }
       return false;
     } else {
-      if(endM<startM){ // overnight shift today
-        return nowMins>=startM||nowMins<endM;
-      }
+      if(endM<startM)return nowMins>=startM||nowMins<endM; // overnight
       return nowMins>=startM&&nowMins<endM;
     }
   }
-  // Check today's shift
   if(parseShift(r.schedule[todayN],false))return true;
-  // Check yesterday's overnight if before noon
   if(auH<12)return parseShift(r.schedule[yName],true);
   return false;
 }
@@ -483,9 +476,7 @@ function checkAlarms(){
     const mem=members.find(m=>m.id===o.member_id);
     const r=mem?getRoster(mem.name):null;
     const memEffDay=mem?getEffectiveDay(mem.name):todayName;
-    const todayShiftCheck=r?r.schedule[memEffDay]:'';
-    const isOffToday=!todayShiftCheck||todayShiftCheck==='OFF';
-    if(isOffToday)return; // don't alarm on off days
+    if(!mem||!isActivelyWorking(mem.name))return; // don't alarm if not in active shift
     const isSpecial=SPECIAL_CUTOFFS[o.supplier_name]!==undefined;
     const ct=isSpecial?(SPECIAL_CUTOFFS[o.supplier_name][todayName]||''):(o.cutoff_time||'');
     if(!ct)return;
@@ -597,22 +588,7 @@ function render(){
   const auHour=auNow.getHours();
   const yIdx=(auNow.getDay()+6)%7;
   const yesterdayName=DAYS[yIdx];
-  if(currentTab==='today')filtered=filtered.filter(m=>{
-    const r=getRoster(m.name);
-    if(!r) return false;
-    // Show if they have a shift today
-    const todayShift=r.schedule[todayName];
-    if(todayShift&&todayShift!=='OFF') return true;
-    // Before 12noon: show anyone whose yesterday shift was overnight
-    if(auHour<12){
-      const yShift=r.schedule[yesterdayName]||'';
-      if(yShift&&yShift!=='OFF'){
-        const endPart=(yShift.split('-')[1]||'').toLowerCase().trim();
-        if(endPart.includes('am')) return true; // overnight — show until noon
-      }
-    }
-    return false;
-  });
+  if(currentTab==='today')filtered=filtered.filter(m=>isActivelyWorking(m.name));
   const grid=document.getElementById('grid');
   if(currentTab==='roster'){renderRoster(filtered,todayName,grid);return;}
   if(!filtered.length){grid.innerHTML='<div class="empty-state">No members match.</div>';return;}
@@ -690,7 +666,7 @@ function render(){
     const taskRows=tasks?tasks.map(tk=>`<div class="task-row ${tk.b?'is-break':''}"><span class="task-time">${tk.t}</span><span class="task-name">${tk.s}</span></div>`).join(''):'<div style="color:var(--muted);font-size:12px">No breakdown for today</div>';
 
     const effDayCard=getEffectiveDay(member.name);
-    const hasBadCutoff=!isOff&&suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSp=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSp?(SPECIAL_CUTOFFS[sup][effDayCard]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad'&&canFireCutoffAlarm(member.name,sup,effDayCard);});
+    const hasBadCutoff=isActivelyWorking(member.name)&&suppliers.some(sup=>{const row=orders.find(o=>o.member_id===member.id&&o.supplier_name===sup);const isSp=SPECIAL_CUTOFFS[sup]!==undefined;const ct=isSp?(SPECIAL_CUTOFFS[sup][effDayCard]||''):(row?.cutoff_time||'');return getCutoffStatus(ct).status==='bad'&&canFireCutoffAlarm(member.name,sup,effDayCard);});
 
     return`<div class="member-card ${hasBadCutoff?'has-alert':''}" data-id="${member.id}">
       <div class="card-header">

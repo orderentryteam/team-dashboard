@@ -652,7 +652,7 @@ function render(){
       const effDay=getEffectiveDay(member.name);
       const ct=isSpecial?(SPECIAL_CUTOFFS[sup][effDay]||''):(row?(row.cutoff_time||''):'');
       const{status,label,icon}=getCutoffStatus(ct);
-      const alarmAllowed=canFireCutoffAlarm(member.name,sup,effDay);
+      const alarmAllowed=isActivelyWorking(member.name)&&canFireCutoffAlarm(member.name,sup,effDay);
       const rowClass=`supplier-row ${status==='none'?'':status==='passed'?'passed':(!alarmAllowed&&status==='bad'?'passed':status)}`;
       const ctDisplay=isSpecial?`<span style="color:var(--accent);font-size:11px;">🔄 Auto: ${ct||'None today'}</span>`:`<span class="cutoff-label">Cut-off:</span><input class="cutoff-input" type="time" value="${ct}" data-member="${member.id}" data-supplier="${sup}">`;
       const coverBy=row?.cover_by||'';

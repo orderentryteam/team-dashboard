@@ -531,8 +531,25 @@ function render(){
     const suppliers=splitList(member.assigned_suppliers);
     ensureOrderRows(member.id,suppliers);
     const roster=getRoster(member.name);
-    const todayShift=roster?roster.schedule[todayName]:'';
-    const isOff=!todayShift||todayShift==='OFF';
+    const auHourCard=nowAU().getHours();
+    const yIdxCard=(nowAU().getDay()+6)%7;
+    const yNameCard=DAYS[yIdxCard];
+    let todayShift=roster?roster.schedule[todayName]:'';
+    let isOff=!todayShift||todayShift==='OFF';
+    // Before 12noon: ALWAYS check if yesterday's overnight shift is still running
+    if(auHourCard<12 && roster){
+      const yShift=roster.schedule[yNameCard]||'';
+      if(yShift&&yShift!=='OFF'){
+        const endPart=(yShift.split('-')[1]||'').toLowerCase().trim();
+        if(endPart.includes('am')){
+          const endHour=parseInt(endPart)||0;
+          if(auHourCard<endHour||endHour<=2){
+            todayShift=yShift+' ('+yNameCard+')';
+            isOff=false;
+          }
+        }
+      }
+    }
     const tasks=getTasks(member.name,todayName);
 
     const supplierRows=suppliers.map(sup=>{

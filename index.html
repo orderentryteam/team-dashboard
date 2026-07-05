@@ -363,6 +363,52 @@ function getRoster(name){if(!name)return null;const n=name.trim();if(ROSTER[n])r
 
 // Before 12noon: if yesterday had an overnight shift, use yesterday's rules
 // After 12noon: always today — hard reset for everyone
+function isActivelyWorking(memberName){
+  const auH=nowAU().getHours();
+  const auM=nowAU().getMinutes();
+  const nowMins=auH*60+auM;
+  const r=getRoster(memberName);
+  if(!r)return false;
+  const todayN=DAYS[nowAU().getDay()];
+  const yIdx=(nowAU().getDay()+6)%7;
+  const yName=DAYS[yIdx];
+  function parseShift(shiftStr,isYesterday){
+    if(!shiftStr||shiftStr==='OFF')return false;
+    const parts=shiftStr.split('-');
+    if(parts.length<2)return false;
+    const startStr=parts[0].trim().toLowerCase();
+    const endStr=parts[1].trim().toLowerCase();
+    function toMins(s){
+      const isPM=s.includes('pm');
+      const isAM=s.includes('am');
+      s=s.replace('am','').replace('pm','').trim();
+      let[h,m]=(s.includes(':')?s.split(':'):[s,'0']).map(Number);
+      if(isPM&&h!==12)h+=12;
+      if(isAM&&h===12)h=0;
+      return h*60+(m||0);
+    }
+    const startM=toMins(startStr);
+    const endM=toMins(endStr);
+    if(isYesterday){
+      // Yesterday's shift crosses midnight — check if we're still in it
+      if(endM<startM){ // overnight: ends after midnight
+        return nowMins<endM; // we're in the early morning portion
+      }
+      return false;
+    } else {
+      if(endM<startM){ // overnight shift today
+        return nowMins>=startM||nowMins<endM;
+      }
+      return nowMins>=startM&&nowMins<endM;
+    }
+  }
+  // Check today's shift
+  if(parseShift(r.schedule[todayN],false))return true;
+  // Check yesterday's overnight if before noon
+  if(auH<12)return parseShift(r.schedule[yName],true);
+  return false;
+}
+
 function getEffectiveDay(memberName){
   const auH=nowAU().getHours();
   if(auH>=12) return DAYS[nowAU().getDay()];
@@ -525,7 +571,7 @@ function updateDayBar(){
   const phTime=new Date().toLocaleTimeString('en-PH',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit'});
   const ukTime=new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit'});
   document.getElementById('worldClocks').textContent=`🇵🇭 PH: ${phTime}   🇬🇧 UK: ${ukTime}`;
-  const onShift=members.filter(m=>{const r=getRoster(m.name);return r&&r.schedule[todayName]&&r.schedule[todayName]!=='OFF';}).length;
+  const onShift=members.filter(m=>isActivelyWorking(m.name)).length;
   const offToday=members.length-onShift;
   let alerts=0,warns=0;
   orders.forEach(o=>{const ct=(SPECIAL_CUTOFFS[o.supplier_name]?SPECIAL_CUTOFFS[o.supplier_name][todayName]:null)||o.cutoff_time||'';const{status}=getCutoffStatus(ct);if(status==='bad')alerts++;else if(status==='warn')warns++;});

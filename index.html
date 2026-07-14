@@ -188,6 +188,7 @@
     <div class="tab active" data-tab="today">Today's Shift</div>
     <div class="tab" data-tab="all">All Members</div>
     <div class="tab" data-tab="roster">Weekly Roster</div>
+    <div class="tab" data-tab="teamshift">Team Shift</div>
   </div>
 
   <div class="controls">
@@ -619,6 +620,7 @@ function render(){
   });
   const grid=document.getElementById('grid');
   if(currentTab==='roster'){renderRoster(filtered,todayName,grid);return;}
+  if(currentTab==='teamshift'){renderTeamShift(filtered,todayName,grid);return;}
   if(!filtered.length){grid.innerHTML='<div class="empty-state">No members match.</div>';return;}
 
   grid.innerHTML=filtered.map(member=>{
@@ -753,6 +755,41 @@ function renderRoster(filtered,todayName,grid){
         <div class="shift-chip ${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'on-shift':'off-today'}">${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'✅ On':'😴 Off'}</div>
       </div>
       <div class="card-section"><div class="section-title">Weekly Roster</div><div class="week-grid">${cells}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderTeamShift(filtered,todayName,grid){
+  if(!filtered.length){grid.innerHTML='<div class="empty-state">No members to show.</div>';return;}
+  const DAYS_ORDER=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  grid.innerHTML=filtered.map(member=>{
+    const roster=getRoster(member.name);
+    if(!roster)return'';
+    // Build all days breakdown
+    const daysHtml=DAYS_ORDER.map(day=>{
+      const shift=roster.schedule[day]||'';
+      const isOff=!shift||shift==='OFF';
+      const isToday=day===todayName;
+      const tasks=getTasks(member.name,day);
+      const taskRows=tasks?tasks.map(tk=>`
+        <div class="task-row ${tk.b?'is-break':''}" style="padding:3px 8px;">
+          <span class="task-time">${tk.t}</span>
+          <span class="task-name">${tk.s}</span>
+        </div>`).join(''):'';
+      return`<div style="margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid ${isToday?'var(--accent)':'var(--line)'};background:${isOff?'var(--panel-2)':'var(--panel)'};">
+        <div style="padding:6px 10px;display:flex;justify-content:space-between;align-items:center;background:${isToday?'var(--accent-soft)':''};">
+          <span style="font-size:12px;font-weight:700;color:${isToday?'var(--accent)':'var(--text)'};">${day}</span>
+          <span style="font-size:11px;color:${isOff?'var(--muted)':'var(--text)'};">${isOff?'Day Off':shift}</span>
+        </div>
+        ${!isOff&&tasks?`<div class="task-list" style="padding:4px 0;">${taskRows}</div>`:''}
+      </div>`;
+    }).join('');
+    return`<div class="member-card" data-id="${member.id}">
+      <div class="card-header">
+        <div><div class="name">${member.name}</div>${roster.role?`<div class="role">${roster.role}</div>`:''}</div>
+        <div class="shift-chip ${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'on-shift':'off-today'}">${roster.schedule[todayName]&&roster.schedule[todayName]!=='OFF'?'✅ On':'😴 Off'}</div>
+      </div>
+      <div class="card-section" style="padding-top:4px;">${daysHtml}</div>
     </div>`;
   }).join('');
 }
